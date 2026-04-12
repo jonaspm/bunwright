@@ -1,4 +1,6 @@
-# bunwright
+<h1 align="center">
+  <strong>Bunwright</strong>
+</h1>
 
 <p align="center">
   <strong>The lightweight browser automation library for Bun</strong>
