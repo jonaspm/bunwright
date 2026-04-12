@@ -1,0 +1,30 @@
+{
+  "config": {
+    "backend": "chrome",
+    "width": 1440,
+    "height": 900,
+    "console": true,
+    "dataStore": {
+      "directory": "./generated/profile"
+    }
+  },
+  "steps": [
+    {
+      "action": "navigate",
+      "url": "https://example.com"
+    },
+    {
+      "action": "wait",
+      "ms": 1000
+    },
+    {
+      "action": "evaluate",
+      "script": "document.title"
+    },
+    {
+      "action": "screenshot",
+      "path": "./generated/example-homepage.png",
+      "format": "png"
+    }
+  ]
+}
