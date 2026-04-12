@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-const cliPath = new URL("../factuclaw-cli.ts", import.meta.url);
+const cliPath = new URL("../bunwright.ts", import.meta.url);
 const cliFilePath = Bun.fileURLToPath(cliPath);
 
-describe("factuclaw CLI", () => {
+describe("bunwright CLI", () => {
   test("shows help output", async () => {
     const proc = Bun.spawn(["bun", cliFilePath, "--help"], {
       stdout: "pipe",
@@ -14,7 +14,7 @@ describe("factuclaw CLI", () => {
     const exitCode = await proc.exited;
 
     expect(exitCode).toBe(0);
-    expect(stdout).toContain("bunx factuclaw-cli.ts --file instructions.json");
+    expect(stdout).toContain("bunwright --file instructions.json");
     expect(stdout).toContain("--instructions");
   });
 
@@ -48,5 +48,21 @@ describe("factuclaw CLI", () => {
     expect(output.ok).toBe(false);
     expect(output.error.code).toBe("ARGUMENT_ERROR");
     expect(output.error.message).toContain("Provide exactly one of --file or --instructions");
+  });
+
+  test("returns structured argument errors for unknown flags", async () => {
+    const proc = Bun.spawn(["bun", cliFilePath, "--wat"], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    const stderr = await new Response(proc.stderr).text();
+    const exitCode = await proc.exited;
+    const output = JSON.parse(stderr);
+
+    expect(exitCode).toBe(1);
+    expect(output.ok).toBe(false);
+    expect(output.error.code).toBe("ARGUMENT_ERROR");
+    expect(output.error.message).toContain("wat");
   });
 });

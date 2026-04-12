@@ -1,5 +1,7 @@
 #!/usr/bin/env bun
 
+import { command, run, string } from "@drizzle-team/brocli";
+
 type WebViewBackend = Bun.WebView.ConstructorOptions["backend"];
 
 type InstructionDocument = {
@@ -59,21 +61,12 @@ const DEFAULT_WIDTH = 1280;
 const DEFAULT_HEIGHT = 800;
 const DEFAULT_BACKEND: WebViewBackend = "chrome";
 const POST_RUN_DELAY_MS = 10_000;
+const CLI_NAME = "bunwright";
+const CLI_DESCRIPTION = "JSON-driven Bun.WebView automation CLI";
 
 function fail(error: FailureOutput["error"]): never {
   console.error(JSON.stringify({ ok: false, error } satisfies FailureOutput));
   process.exit(1);
-}
-
-function printHelp(): void {
-  console.log(`Usage:
-  bunx factuclaw-cli.ts --file instructions.json
-  bunx factuclaw-cli.ts --instructions '{"steps":[...]}'
-
-Options:
-  --file <path>            Read instructions from a JSON file
-  --instructions <json>    Read instructions from an inline JSON string
-  --help                   Show this message`);
 }
 
 function sleep(ms: number): Promise<void> {
@@ -100,38 +93,65 @@ function isString(value: unknown): value is string {
   return typeof value === "string";
 }
 
-function parseArgs(argv: string[]): { file?: string; instructions?: string; help: boolean } {
-  let file: string | undefined;
-  let instructions: string | undefined;
-  let help = false;
+type CliOptions = {
+  file?: string;
+  instructions?: string;
+};
 
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
+function renderHelp(): string {
+  return `Usage:
+  ${CLI_NAME} --file instructions.json
+  ${CLI_NAME} --instructions '{"steps":[...]}'
 
-    if (arg === "--help" || arg === "-h") {
-      help = true;
-      continue;
-    }
+Options:
+  --file <path>            Read instructions from a JSON file
+  --instructions <json>    Read instructions from an inline JSON string
+  --help                   Show this message
+  --version                Show the CLI version`;
+}
 
-    if (arg === "--file") {
-      file = argv[index + 1];
-      index += 1;
-      continue;
-    }
+function printHelp(): void {
+  console.log(renderHelp());
+}
 
-    if (arg === "--instructions") {
-      instructions = argv[index + 1];
-      index += 1;
-      continue;
-    }
-
-    fail({
-      code: "ARGUMENT_ERROR",
-      message: `Unknown argument: ${arg}`,
-    });
+function normalizeArgumentError(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
   }
 
-  return { file, instructions, help };
+  return "Invalid CLI arguments.";
+}
+
+function formatCliError(event: {
+  violation: string;
+  unrecognized?: string[];
+  offender?: string | { namePart?: string; dataPart?: string };
+  missing?: string[][];
+}): string {
+  switch (event.violation) {
+    case "unrecognized_args_error":
+      return `Unknown argument: ${event.unrecognized?.[0] ?? "<unknown>"}`;
+    case "unknown_command_error":
+    case "unknown_subcommand_error":
+      return `Unknown argument: ${typeof event.offender === "string" ? event.offender : "<unknown>"}`;
+    case "missing_args_error":
+      return `Missing required argument: ${event.missing?.[0]?.join("/") ?? "<unknown>"}`;
+    case "invalid_boolean_syntax":
+    case "invalid_string_syntax":
+    case "invalid_number_syntax":
+    case "invalid_number_value":
+    case "above_max":
+    case "below_min":
+    case "expected_int":
+    case "enum_violation": {
+      const offender = typeof event.offender === "object"
+        ? event.offender.namePart ?? event.offender.dataPart ?? "<unknown>"
+        : event.offender;
+      return `Invalid value for argument: ${offender}`;
+    }
+    default:
+      return "Invalid CLI arguments.";
+  }
 }
 
 async function loadInstructionSource(args: { file?: string; instructions?: string }): Promise<unknown> {
@@ -543,14 +563,7 @@ async function runStepWithRetry(view: Bun.WebView, step: InstructionStep, index:
   throw lastError;
 }
 
-async function main(): Promise<void> {
-  const args = parseArgs(Bun.argv.slice(2));
-
-  if (args.help) {
-    printHelp();
-    return;
-  }
-
+async function executeRun(args: CliOptions): Promise<void> {
   const rawInput = await loadInstructionSource(args);
   const document = validateDocument(rawInput);
   const view = new Bun.WebView(resolveViewOptions(document.config));
@@ -575,4 +588,45 @@ async function main(): Promise<void> {
   }
 }
 
-await main();
+const runCommand = command({
+  name: "run",
+  desc: "Execute a Bun.WebView instruction document.",
+  help: printHelp,
+  options: {
+    file: string().desc("Read instructions from a JSON file."),
+    instructions: string().desc("Read instructions from an inline JSON string."),
+  },
+  handler: async (options) => {
+    await executeRun(options);
+  },
+});
+
+const args = Bun.argv.slice(2);
+const implicitRunArgs = args.length > 0 && !args[0]?.startsWith("-") ? args : ["run", ...args];
+
+try {
+  await run([runCommand], {
+    name: CLI_NAME,
+    description: CLI_DESCRIPTION,
+    version: "0.1.0",
+    omitKeysOfUndefinedOptions: true,
+    argSource: [Bun.argv[0] ?? "bun", Bun.argv[1] ?? "bunwright.ts", ...implicitRunArgs],
+    theme: (event) => {
+      if (event.type === "error") {
+        fail({
+          code: "ARGUMENT_ERROR",
+          message: event.violation === "unknown_error"
+            ? normalizeArgumentError(event.error)
+            : formatCliError(event),
+        });
+      }
+
+      return false;
+    },
+  });
+} catch (error) {
+  fail({
+    code: "ARGUMENT_ERROR",
+    message: normalizeArgumentError(error),
+  });
+}

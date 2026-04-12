@@ -1,4 +1,4 @@
-# Skill: factuclaw-cli
+# Skill: bunwright
 
 ## When to Use This Skill
 
@@ -6,20 +6,20 @@ Use this skill when you need a reusable, JSON-driven browser automation CLI base
 
 - run scripted browser steps from CI, scripts, or local tooling
 - keep automation steps in a JSON file instead of hardcoding them in TypeScript
-- reuse the `factuclaw-cli` package in another Bun project via `bun link`
+- reuse the `bunwright` package in another Bun project via `bun link`
 - document or generate instruction files for a `Bun.WebView` runner
 
 ## What This Project Provides
 
-This repository exposes a CLI named `factuclaw-cli`.
+This repository exposes a CLI named `bunwright`.
 
 It accepts one JSON instruction document and executes its steps sequentially through `Bun.WebView`.
 
 ### Supported input modes
 
 ```bash
-factuclaw-cli --file instructions.json
-factuclaw-cli --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bunwright --file instructions.json
+bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
 ```
 
 ### Runtime behavior
@@ -42,19 +42,19 @@ bun link
 From the consuming repository:
 
 ```bash
-bun link factuclaw-cli
+bun link bunwright
 ```
 
 Then run:
 
 ```bash
-factuclaw-cli --file instructions.json
+bunwright --file instructions.json
 ```
 
 Or through Bun:
 
 ```bash
-bunx factuclaw-cli --file instructions.json
+bunx bunwright --file instructions.json
 ```
 
 ## Instruction Document Shape
@@ -145,7 +145,7 @@ Failed runs print JSON to stderr:
 
 ## Repository References
 
-- CLI entrypoint: `factuclaw-cli.ts`
+- CLI entrypoint: `bunwright.ts`
 - schema docs: `docs/instructions-schema.md`
 - sample input: `instructions.json`
 

@@ -1,12 +1,12 @@
 # Instructions Schema
 
-`factuclaw-cli.ts` reads a JSON instruction document and executes each step with `Bun.WebView`.
+`bunwright.ts` reads a JSON instruction document and executes each step with `Bun.WebView`.
 
 ## Usage
 
 ```bash
-bunx factuclaw-cli.ts --file instructions.json
-bunx factuclaw-cli.ts --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bunx bunwright --file instructions.json
+bunx bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
 ```
 
 Pass exactly one of `--file` or `--instructions`.

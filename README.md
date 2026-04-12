@@ -1,4 +1,4 @@
-# factuclaw
+# bunwright
 
 To install dependencies:
 
@@ -17,26 +17,26 @@ bun link
 From the other project:
 
 ```bash
-bun link factuclaw-cli
+bun link bunwright
 ```
 
 Then run the linked executable:
 
 ```bash
-factuclaw-cli --file instructions.json
+bunwright --file instructions.json
 ```
 
 Or with Bun's package runner:
 
 ```bash
-bunx factuclaw-cli --file instructions.json
+bunx bunwright --file instructions.json
 ```
 
 ## CLI Usage
 
 ```bash
-bunx factuclaw-cli.ts --file instructions.json
-bunx factuclaw-cli.ts --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bunx bunwright --file instructions.json
+bunx bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
 ```
 
 Schema documentation lives in `docs/instructions-schema.md`.
@@ -52,7 +52,7 @@ bun run prisma:push
 To run:
 
 ```bash
-bun run factuclaw-cli.ts --help
+bun run bunwright.ts --help
 ```
 
 This project was created using `bun init` in bun v1.3.12. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
