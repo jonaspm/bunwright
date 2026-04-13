@@ -1,3 +1,11 @@
+---
+name: Bunwright
+description: Use this skill when you need a reusable, JSON-driven browser automation CLI based on `Bun.WebView`.
+metadata:
+    mintlify-proj: bun
+    version: "1.0"
+---
+
 # Skill: bunwright
 
 ## When to Use This Skill
