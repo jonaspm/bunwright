@@ -1,0 +1,25 @@
+{
+  "config": {
+    "backend": {
+      "type": "chrome",
+      "url": "ws://127.0.0.1:9222/devtools/browser/98477615-756f-4e36-a587-b8a24558cee9"
+    },
+    "width": 1440,
+    "height": 1200,
+    "console": true
+  },
+  "steps": [
+    {
+      "action": "navigate",
+      "url": "https://reddit.com/"
+    },
+    {
+      "action": "wait",
+      "ms": 3000
+    },
+    {
+      "action": "evaluate",
+      "script": "(() => { const pick = value => typeof value === 'string' ? value.trim() : value ?? null; const text = node => node?.textContent?.replace(/\\s+/g, ' ').trim() ?? null; const labels = Array.from(document.querySelectorAll('label')).map((label, index) => ({ index, text: text(label), htmlFor: pick(label.getAttribute('for')) })); const inputs = Array.from(document.querySelectorAll('input, select, textarea')).map((element, index) => { const id = pick(element.getAttribute('id')); const name = pick(element.getAttribute('name')); const label = id ? document.querySelector(`label[for=\"${id}\"]`) : null; const parentLabel = element.closest('label'); return { index, tag: element.tagName.toLowerCase(), type: 'type' in element ? pick(element.type) : null, id, name, placeholder: pick(element.getAttribute('placeholder')), value: 'value' in element ? pick(element.value) : null, required: element.hasAttribute('required'), labelText: text(label) ?? text(parentLabel), classes: pick(element.getAttribute('class')) }; }); const buttons = Array.from(document.querySelectorAll('button, input[type=button], input[type=submit], a[role=button]')).map((element, index) => ({ index, tag: element.tagName.toLowerCase(), id: pick(element.getAttribute('id')), name: pick(element.getAttribute('name')), type: pick(element.getAttribute('type')), text: text(element), value: pick(element.getAttribute('value')), classes: pick(element.getAttribute('class')) })); return { title: document.title, url: location.href, labels, inputs, buttons, bodyText: document.body.innerText.replace(/\\s+/g, ' ').slice(0, 4000) }; })()"
+    }
+  ]
+}
