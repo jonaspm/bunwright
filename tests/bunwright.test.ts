@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-const cliPath = new URL("../bunwright.ts", import.meta.url);
+const cliPath = new URL("../src/bunwright.ts", import.meta.url);
 const cliFilePath = Bun.fileURLToPath(cliPath);
 
 describe("bunwright CLI", () => {
