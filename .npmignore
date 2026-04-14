@@ -1,0 +1,27 @@
+# Development and repository metadata
+.git
+.github
+.agents
+
+# Dependencies and lockfiles
+node_modules
+bun.lock
+skills-lock.json
+
+# Source and test files not needed in the published package
+src
+tests
+docs
+generated
+
+# Local instructions and scan artifacts
+instructions*.json
+scan-*.json
+
+# TypeScript and config files used only for development
+tsconfig.json
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db
