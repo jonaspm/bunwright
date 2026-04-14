@@ -26,8 +26,8 @@ It accepts one JSON instruction document and executes its steps sequentially thr
 ### Supported input modes
 
 ```bash
-bunwright --file instructions.json
-bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bunx bunwright --file instructions.json
+bunx bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
 ```
 
 ### Runtime behavior
@@ -54,12 +54,6 @@ bun link bunwright
 ```
 
 Then run:
-
-```bash
-bunwright --file instructions.json
-```
-
-Or through Bun:
 
 ```bash
 bunx bunwright --file instructions.json
