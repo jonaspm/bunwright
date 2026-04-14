@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+declare const __VERSION__: string;
 
 import { command, run, string } from "@drizzle-team/brocli";
 
@@ -608,7 +608,7 @@ try {
   await run([runCommand], {
     name: CLI_NAME,
     description: CLI_DESCRIPTION,
-    version: "0.1.0",
+    version: __VERSION__,
     omitKeysOfUndefinedOptions: true,
     argSource: [Bun.argv[0] ?? "bun", Bun.argv[1] ?? "bunwright.ts", ...implicitRunArgs],
     theme: (event) => {

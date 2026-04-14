@@ -1,12 +1,16 @@
 {
   "name": "bunwright",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "JSON-driven Bun.WebView automation CLI",
-  "module": "bunwright.ts",
+  "module": "./dist/bunwright.mjs",
+  "types": "./dist/types.d.ts",
   "bin": {
-    "bunwright": "./bunwright.ts"
+    "bunwright": "./dist/bunwright.mjs"
   },
   "scripts": {
+    "build": "bun run build:dist && bun run build:types",
+    "build:dist": "tsdown",
+    "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/types.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -15,10 +19,11 @@
     "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "tsdown": "^0.21.8"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^6.0.2"
   },
   "type": "module"
 }
