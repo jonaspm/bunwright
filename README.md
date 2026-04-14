@@ -29,6 +29,22 @@ If you want a Playwright alternative for Bun that is smaller in scope, faster to
 
 ## Install
 
+### npm
+
+Install globally with npm:
+
+```bash
+npm install -g bunwright
+```
+
+Then run:
+
+```bash
+bunwright --file instructions.json
+```
+
+### Development
+
 Install dependencies in this repository:
 
 ```bash
