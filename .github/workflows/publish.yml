@@ -1,0 +1,19 @@
+name: Publish Package
+on:
+  push:
+    tags: ['v*'] # Triggers only on version tags
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+      - run: bun ci
+      - run: bun run build
+      - run: rm -rf src tests .npmignore bunwright.ts
+      - run: npm publish --provenance # Provenance adds security verification
