@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "bun run build:dist && bun run build:types",
-    "build:dist": "tsdown",
+    "build:dist": "bun build.ts",
     "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/types.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
@@ -19,8 +19,7 @@
     "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "tsdown": "^0.21.8"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^6.0.2"

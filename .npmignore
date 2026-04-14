@@ -1,6 +1,6 @@
 # Source files not needed in published package
 bunwright.ts
-tsdown.config.ts
+build.ts
 src/types.ts
 
 # Development and repository metadata
