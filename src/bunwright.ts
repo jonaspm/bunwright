@@ -1,6 +1,11 @@
 declare const __VERSION__: string;
 
 import { command, run, string } from "@drizzle-team/brocli";
+import { readFileSync } from "fs";
+
+const CLI_VERSION = typeof __VERSION__ !== "undefined"
+  ? __VERSION__
+  : JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf-8")).version;
 
 type WebViewBackend = Bun.WebView.ConstructorOptions["backend"];
 
@@ -608,7 +613,7 @@ try {
   await run([runCommand], {
     name: CLI_NAME,
     description: CLI_DESCRIPTION,
-    version: __VERSION__,
+    version: CLI_VERSION,
     omitKeysOfUndefinedOptions: true,
     argSource: [Bun.argv[0] ?? "bun", Bun.argv[1] ?? "bunwright.ts", ...implicitRunArgs],
     theme: (event) => {
