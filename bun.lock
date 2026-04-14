@@ -5,10 +5,10 @@
     "": {
       "name": "factuclaw",
       "dependencies": {
-        "@drizzle-team/brocli": "^0.10.2",
         "dotenv": "^16.6.1",
       },
       "devDependencies": {
+        "@drizzle-team/brocli": "^0.10.2",
         "@types/bun": "latest",
       },
       "peerDependencies": {
