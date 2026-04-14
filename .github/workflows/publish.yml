@@ -10,10 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
           registry-url: 'https://registry.npmjs.org'
-      - run: bun ci
+          bun-version: latest
+      - run: bun i --frozen-lockfile
       - run: bun run build
       - run: rm -rf src tests .npmignore bunwright.ts
-      - run: npm publish --provenance # Provenance adds security verification
+      - run: bun publish --provenance # Provenance adds security verification
