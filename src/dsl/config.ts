@@ -8,7 +8,9 @@ export interface BrowserConfig {
   retryTimeout?: number;
 }
 
-const DEFAULT_CONFIG: Required<Omit<BrowserConfig, "dataStore">> & { dataStore: BrowserConfig["dataStore"] } = {
+const DEFAULT_CONFIG: Required<Omit<BrowserConfig, "dataStore">> & {
+  dataStore: BrowserConfig["dataStore"];
+} = {
   backend: "chrome",
   width: 1280,
   height: 800,
@@ -18,14 +20,16 @@ const DEFAULT_CONFIG: Required<Omit<BrowserConfig, "dataStore">> & { dataStore: 
   dataStore: undefined,
 };
 
-let _config: BrowserConfig | undefined;
+let userConfig: BrowserConfig | undefined;
 
 export function defineConfig(config: BrowserConfig): BrowserConfig {
-  _config = config;
+  userConfig = config;
   return config;
 }
 
-export async function resolveConfig(): Promise<Required<BrowserConfig> & { dataStore: BrowserConfig["dataStore"] }> {
+export async function resolveConfig(): Promise<
+  Required<BrowserConfig> & { dataStore: BrowserConfig["dataStore"] }
+> {
   const defaults = { ...DEFAULT_CONFIG };
   const fileConfigs = ["bunwright.config.ts", "bunwright.config.js", "bunwright.config.mjs"];
 
@@ -42,8 +46,8 @@ export async function resolveConfig(): Promise<Required<BrowserConfig> & { dataS
     }
   }
 
-  if (_config) {
-    Object.assign(defaults, _config);
+  if (userConfig) {
+    Object.assign(defaults, userConfig);
   }
 
   return defaults as Required<BrowserConfig> & { dataStore: BrowserConfig["dataStore"] };

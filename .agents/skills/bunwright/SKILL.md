@@ -2,8 +2,8 @@
 name: Bunwright
 description: Use this skill when you need a reusable, JSON-driven browser automation CLI based on `Bun.WebView`.
 metadata:
-    mintlify-proj: bun
-    version: "1.0"
+  mintlify-proj: bun
+  version: "1.0"
 ---
 
 # Skill: bunwright
@@ -80,32 +80,32 @@ bunx bunwright --file instructions.json
 
 ## Config Fields
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `backend` | `"chrome" | "webkit" | { "type": "chrome", "path"?: string, "argv"?: string[] }` | Defaults to `chrome` in this CLI |
-| `width` | `number` | Positive viewport width |
-| `height` | `number` | Positive viewport height |
-| `url` | `string` | Initial URL |
-| `console` | `boolean` | When true, forwards page console output |
-| `dataStore` | `"ephemeral" | { "directory": string }` | Storage persistence |
+| Field       | Type         | Notes                                   |
+| ----------- | ------------ | --------------------------------------- | --------------------------------------------------------- | -------------------------------- |
+| `backend`   | `"chrome"    | "webkit"                                | { "type": "chrome", "path"?: string, "argv"?: string[] }` | Defaults to `chrome` in this CLI |
+| `width`     | `number`     | Positive viewport width                 |
+| `height`    | `number`     | Positive viewport height                |
+| `url`       | `string`     | Initial URL                             |
+| `console`   | `boolean`    | When true, forwards page console output |
+| `dataStore` | `"ephemeral" | { "directory": string }`                | Storage persistence                                       |
 
 ## Supported Actions
 
-| Action | Required fields |
-| --- | --- |
-| `navigate` | `url` |
-| `click` | `selector` or `x` and `y` |
-| `type` | `selector`, `text` |
-| `press` | `key`, optional `modifiers` |
-| `evaluate` | `script` |
-| `wait` | `ms` |
+| Action       | Required fields                                        |
+| ------------ | ------------------------------------------------------ |
+| `navigate`   | `url`                                                  |
+| `click`      | `selector` or `x` and `y`                              |
+| `type`       | `selector`, `text`                                     |
+| `press`      | `key`, optional `modifiers`                            |
+| `evaluate`   | `script`                                               |
+| `wait`       | `ms`                                                   |
 | `screenshot` | optional `path`, optional `format`, optional `quality` |
-| `scroll` | `dx`, `dy` |
-| `scrollTo` | `selector`, optional `block` |
-| `resize` | `width`, `height` |
-| `back` | none |
-| `forward` | none |
-| `reload` | none |
+| `scroll`     | `dx`, `dy`                                             |
+| `scrollTo`   | `selector`, optional `block`                           |
+| `resize`     | `width`, `height`                                      |
+| `back`       | none                                                   |
+| `forward`    | none                                                   |
+| `reload`     | none                                                   |
 
 ## Authoring Guidance
 
@@ -124,7 +124,12 @@ Successful runs print JSON to stdout:
   "ok": true,
   "steps": [
     { "index": 0, "action": "navigate", "attempt": 1 },
-    { "index": 1, "action": "screenshot", "attempt": 1, "screenshotPath": "./generated/example.png" }
+    {
+      "index": 1,
+      "action": "screenshot",
+      "attempt": 1,
+      "screenshotPath": "./generated/example.png"
+    }
   ],
   "closingInMs": 10000
 }

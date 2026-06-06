@@ -60,13 +60,13 @@ export class SelectorResolver {
 
   #resolveRole(expr: string): ResolvedSelector {
     const eqIndex = expr.indexOf("=");
-    const [role, name] = eqIndex !== -1
-      ? [expr.slice(0, eqIndex), expr.slice(eqIndex + 2, -1)]
-      : [expr, undefined];
+    const [role, name] =
+      eqIndex !== -1 ? [expr.slice(0, eqIndex), expr.slice(eqIndex + 2, -1)] : [expr, undefined];
 
-    const script = name !== undefined
-      ? `(() => { const el = document.querySelector('[role="${role}"][aria-label="${name}"]') ?? document.querySelector('[role="${role}"]'); if (!el) return null; const path = []; let cur = el; while (cur && cur !== document.body) { const siblings = Array.from(cur.parentElement?.children ?? []).filter(c => c.tagName === cur.tagName); const idx = siblings.indexOf(cur); const tag = cur.tagName.toLowerCase(); path.unshift(idx > 0 ? \`\${tag}:nth-of-type(\${idx + 1})\` : tag); cur = cur.parentElement; } return path.join(' > '); })()`
-      : `(() => { const el = document.querySelector('[role="${role}"]'); if (!el) return null; const path = []; let cur = el; while (cur && cur !== document.body) { const siblings = Array.from(cur.parentElement?.children ?? []).filter(c => c.tagName === cur.tagName); const idx = siblings.indexOf(cur); const tag = cur.tagName.toLowerCase(); path.unshift(idx > 0 ? \`\${tag}:nth-of-type(\${idx + 1})\` : tag); cur = cur.parentElement; } return path.join(' > '); })()`;
+    const script =
+      name !== undefined
+        ? `(() => { const el = document.querySelector('[role="${role}"][aria-label="${name}"]') ?? document.querySelector('[role="${role}"]'); if (!el) return null; const path = []; let cur = el; while (cur && cur !== document.body) { const siblings = Array.from(cur.parentElement?.children ?? []).filter(c => c.tagName === cur.tagName); const idx = siblings.indexOf(cur); const tag = cur.tagName.toLowerCase(); path.unshift(idx > 0 ? \`\${tag}:nth-of-type(\${idx + 1})\` : tag); cur = cur.parentElement; } return path.join(' > '); })()`
+        : `(() => { const el = document.querySelector('[role="${role}"]'); if (!el) return null; const path = []; let cur = el; while (cur && cur !== document.body) { const siblings = Array.from(cur.parentElement?.children ?? []).filter(c => c.tagName === cur.tagName); const idx = siblings.indexOf(cur); const tag = cur.tagName.toLowerCase(); path.unshift(idx > 0 ? \`\${tag}:nth-of-type(\${idx + 1})\` : tag); cur = cur.parentElement; } return path.join(' > '); })()`;
 
     const result = this.view.evaluate(script) as unknown as string | null;
     return { css: result ?? `[role="${role}"]`, isCoordinate: false };

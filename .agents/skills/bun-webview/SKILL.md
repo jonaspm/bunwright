@@ -2,8 +2,8 @@
 name: Bun WebView
 description: Use when you need to build, automate, or document desktop-style browser windows and browser automation flows with Bun's `Bun.WebView` API. Reach for this skill when creating a new `Bun.WebView`, configuring constructor parameters, calling instance methods, using page state properties, or wiring CDP and event-based integrations.
 metadata:
-    mintlify-proj: bun
-    version: "1.0"
+  mintlify-proj: bun
+  version: "1.0"
 ---
 
 # Bun WebView Skill
@@ -116,12 +116,12 @@ Common patterns:
 
 The constructor accepts an options object. The key documented options for `v1.3.12` are:
 
-| Parameter | Type | Purpose |
-|---|---|---|
-| `backend` | `"webkit" \| "chrome" \| { type: "chrome", path?: string, argv?: string[] }` | Select the backend or provide a custom Chrome executable and arguments |
-| `url` | `string` | Initial URL to load |
-| `console` | `typeof console` or `(type, ...args) => void` | Capture page logs |
-| `dataStore` | profile/persistence object or path | Persist browser profile data across runs |
+| Parameter   | Type                                                                         | Purpose                                                                |
+| ----------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `backend`   | `"webkit" \| "chrome" \| { type: "chrome", path?: string, argv?: string[] }` | Select the backend or provide a custom Chrome executable and arguments |
+| `url`       | `string`                                                                     | Initial URL to load                                                    |
+| `console`   | `typeof console` or `(type, ...args) => void`                                | Capture page logs                                                      |
+| `dataStore` | profile/persistence object or path                                           | Persist browser profile data across runs                               |
 
 ### Parameter guidance
 
@@ -309,18 +309,18 @@ Use this pattern for:
 
 ## Decision Guide
 
-| Goal | Recommended approach |
-|---|---|
-| Load a website or local dev server | Use `url` |
-| Choose the rendering/automation engine | Set `backend` |
-| Use a custom Chrome binary | Use `backend: { type: "chrome", path, argv }` |
-| Capture page logs | Use `console` |
-| Persist cookies and sessions | Use `dataStore` |
-| Run page-side code from Bun | Use `evaluate()` |
-| Click elements or coordinates | Use `click()` |
-| Fill forms | Use `type()` and `press()` |
-| Capture screenshots | Use `screenshot()` |
-| Use low-level Chrome protocol features | Use `cdp()` plus events |
+| Goal                                   | Recommended approach                          |
+| -------------------------------------- | --------------------------------------------- |
+| Load a website or local dev server     | Use `url`                                     |
+| Choose the rendering/automation engine | Set `backend`                                 |
+| Use a custom Chrome binary             | Use `backend: { type: "chrome", path, argv }` |
+| Capture page logs                      | Use `console`                                 |
+| Persist cookies and sessions           | Use `dataStore`                               |
+| Run page-side code from Bun            | Use `evaluate()`                              |
+| Click elements or coordinates          | Use `click()`                                 |
+| Fill forms                             | Use `type()` and `press()`                    |
+| Capture screenshots                    | Use `screenshot()`                            |
+| Use low-level Chrome protocol features | Use `cdp()` plus events                       |
 
 ## Workflow
 

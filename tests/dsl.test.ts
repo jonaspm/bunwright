@@ -48,7 +48,7 @@ describe("SelectorResolver", () => {
 
   test.skip("role: resolves with WebView", async () => {
     const mockView = {
-      evaluate: () => 'button',
+      evaluate: () => "button",
     } as any;
     const resolver = new SelectorResolver(mockView);
     const result = resolver.resolve("role=button" as Selector);
@@ -66,7 +66,7 @@ describe("SelectorResolver", () => {
 
   test.skip("text: resolves with WebView", async () => {
     const mockView = {
-      evaluate: () => 'div',
+      evaluate: () => "div",
     } as any;
     const resolver = new SelectorResolver(mockView);
     const result = resolver.resolve("text:Click me" as Selector);

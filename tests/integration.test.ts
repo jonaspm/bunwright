@@ -95,9 +95,9 @@ describe("Integration: TimeoutError", () => {
     const page = await newPage();
     await page.navigate("https://example.com");
 
-    await expect(
-      page.click("css:.does-not-exist", { timeout: 1000 })
-    ).rejects.toThrow(TimeoutError);
+    await expect(page.click("css:.does-not-exist", { timeout: 1000 })).rejects.toThrow(
+      TimeoutError,
+    );
 
     await browser.close();
   });
@@ -105,10 +105,7 @@ describe("Integration: TimeoutError", () => {
 
 describe("Integration: Multi-Context", () => {
   testIf("multiple contexts can have independent pages", async () => {
-    const [ctx1, ctx2] = await Promise.all([
-      browser.newContext(),
-      browser.newContext(),
-    ]);
+    const [ctx1, ctx2] = await Promise.all([browser.newContext(), browser.newContext()]);
 
     const page1 = await ctx1.newPage();
     const page2 = await ctx2.newPage();

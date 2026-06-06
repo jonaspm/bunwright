@@ -52,4 +52,11 @@ interface FailureOutput {
   };
 }
 
-export type { InstructionDocument, InstructionConfig, InstructionStep, StepSuccessResult, FailureOutput, ScreenshotFormat };
+export type {
+  InstructionDocument,
+  InstructionConfig,
+  InstructionStep,
+  StepSuccessResult,
+  FailureOutput,
+  ScreenshotFormat,
+};

@@ -8,7 +8,7 @@ await page.navigate("https://example.com");
 
 const title = await page.evaluate(() => document.title);
 const links = await page.evaluate(() =>
-  Array.from(document.querySelectorAll("a")).map((a) => a.href)
+  Array.from(document.querySelectorAll("a")).map((a) => a.href),
 );
 
 console.log("Title:", title);

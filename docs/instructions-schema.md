@@ -36,14 +36,14 @@ Pass exactly one of `--file` or `--instructions`.
 
 `config` is optional.
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `backend` | `"chrome" | "webkit" | { "type": "chrome", "path"?: string, "argv"?: string[] }` | No | Defaults to `"chrome"`. Use Chrome on Windows and Linux. |
-| `width` | `number` | No | Positive number. Defaults to `1280`. |
-| `height` | `number` | No | Positive number. Defaults to `800`. |
-| `url` | `string` | No | Initial URL loaded when the WebView opens. |
-| `console` | `boolean` | No | When `true`, forwards page console logs to the CLI process. |
-| `dataStore` | `"ephemeral" | { "directory": string }` | No | Defaults to ephemeral storage. Use `{ "directory": "./path" }` for persistent browser state. |
+| Field       | Type         | Required                 | Notes                                                       |
+| ----------- | ------------ | ------------------------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `backend`   | `"chrome"    | "webkit"                 | { "type": "chrome", "path"?: string, "argv"?: string[] }`   | No                                                                                           | Defaults to `"chrome"`. Use Chrome on Windows and Linux. |
+| `width`     | `number`     | No                       | Positive number. Defaults to `1280`.                        |
+| `height`    | `number`     | No                       | Positive number. Defaults to `800`.                         |
+| `url`       | `string`     | No                       | Initial URL loaded when the WebView opens.                  |
+| `console`   | `boolean`    | No                       | When `true`, forwards page console logs to the CLI process. |
+| `dataStore` | `"ephemeral" | { "directory": string }` | No                                                          | Defaults to ephemeral storage. Use `{ "directory": "./path" }` for persistent browser state. |
 
 ## Steps
 
@@ -221,11 +221,11 @@ Failures print JSON to stderr and exit with a non-zero code.
 
 Possible error codes:
 
-| Code | Meaning |
-| --- | --- |
-| `ARGUMENT_ERROR` | Invalid CLI arguments or invalid JSON input |
-| `VALIDATION_ERROR` | JSON shape does not match the schema |
-| `STEP_FAILED` | A step failed 3 times |
+| Code               | Meaning                                     |
+| ------------------ | ------------------------------------------- |
+| `ARGUMENT_ERROR`   | Invalid CLI arguments or invalid JSON input |
+| `VALIDATION_ERROR` | JSON shape does not match the schema        |
+| `STEP_FAILED`      | A step failed 3 times                       |
 
 ## Example File
 

@@ -7,7 +7,7 @@ const TYPES_ENTRY = "index.d.ts";
 
 const dtsFiles = readdirSync(DIST_DIR)
   .filter((f) => f.endsWith(".d.ts"))
-  .sort();
+  .toSorted();
 if (dtsFiles.length === 0) {
   console.error("No .d.ts files found in dist/. Run `bun run build` first.");
   process.exit(1);
@@ -51,7 +51,10 @@ for (const line of indexContent.split("\n")) {
   let m = trimmed.match(/^export(?:\s+type)?\s*\{\s*([^}]+?)\s*\}/);
   if (m) {
     for (const part of m[1]!.split(",")) {
-      const name = part.trim().split(/\s+as\s+/)[0]!.trim();
+      const name = part
+        .trim()
+        .split(/\s+as\s+/)[0]!
+        .trim();
       if (name) indexExports.add(name);
     }
     continue;
@@ -191,13 +194,21 @@ function processFile(file: string) {
 for (const f of dtsFiles) processFile(f);
 
 const seenClass = new Set<string>();
-const uniqueClasses = classes.filter((c) => (seenClass.has(c.name) ? false : (seenClass.add(c.name), true)));
+const uniqueClasses = classes.filter((c) =>
+  seenClass.has(c.name) ? false : (seenClass.add(c.name), true),
+);
 const seenIface = new Set<string>();
-const uniqueInterfaces = interfaces.filter((i) => (seenIface.has(i.name) ? false : (seenIface.add(i.name), true)));
+const uniqueInterfaces = interfaces.filter((i) =>
+  seenIface.has(i.name) ? false : (seenIface.add(i.name), true),
+);
 const seenType = new Set<string>();
-const uniqueTypes = typeAliases.filter((t) => (seenType.has(t.name) ? false : (seenType.add(t.name), true)));
+const uniqueTypes = typeAliases.filter((t) =>
+  seenType.has(t.name) ? false : (seenType.add(t.name), true),
+);
 const seenFunc = new Set<string>();
-const uniqueFuncs = functions.filter((f) => (seenFunc.has(f.name) ? false : (seenFunc.add(f.name), true)));
+const uniqueFuncs = functions.filter((f) =>
+  seenFunc.has(f.name) ? false : (seenFunc.add(f.name), true),
+);
 
 function isPublicExport(name: string): boolean {
   if (indexExports.has(name)) return true;
@@ -297,7 +308,8 @@ if (exportedTypes.length) md += `- [Type Aliases](#type-aliases)\n`;
 if (exportedFuncs.length) md += `- [Functions](#functions)\n`;
 md += `\n`;
 
-const sorted = <T extends { name: string }>(arr: T[]) => arr.sort((a, b) => a.name.localeCompare(b.name));
+const sorted = <T extends { name: string }>(arr: T[]) =>
+  arr.sort((a, b) => a.name.localeCompare(b.name));
 
 if (exportedClasses.length) {
   md += `## Classes\n\n`;

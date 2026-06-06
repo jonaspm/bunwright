@@ -2,10 +2,7 @@
 
 import { browser } from "bunwright";
 
-const [adminCtx, userCtx] = await Promise.all([
-  browser.newContext(),
-  browser.newContext(),
-]);
+const [adminCtx, userCtx] = await Promise.all([browser.newContext(), browser.newContext()]);
 
 const adminPage = await adminCtx.newPage();
 const userPage = await userCtx.newPage();

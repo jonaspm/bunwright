@@ -19,13 +19,19 @@ bun run bunwright.ts --instructions '{"steps":[{"action":"wait","ms":0}]}' --fil
 Instructions used:
 
 ```json
-{"steps":[{"action":"wait","ms":0}]}
+{ "steps": [{ "action": "wait", "ms": 0 }] }
 ```
 
 Observed result:
 
 ```json
-{"ok":false,"error":{"code":"ARGUMENT_ERROR","message":"Provide exactly one of --file or --instructions."}}
+{
+  "ok": false,
+  "error": {
+    "code": "ARGUMENT_ERROR",
+    "message": "Provide exactly one of --file or --instructions."
+  }
+}
 ```
 
 ## 2. Malformed inline JSON
@@ -45,7 +51,14 @@ Instructions used:
 Observed result:
 
 ```json
-{"ok":false,"error":{"code":"ARGUMENT_ERROR","message":"Failed to parse instruction JSON.","details":"JSON Parse error: Unexpected EOF"}}
+{
+  "ok": false,
+  "error": {
+    "code": "ARGUMENT_ERROR",
+    "message": "Failed to parse instruction JSON.",
+    "details": "JSON Parse error: Unexpected EOF"
+  }
+}
 ```
 
 ## 3. Invalid config value
@@ -59,13 +72,20 @@ bun run bunwright.ts --instructions '{"config":{"width":0},"steps":[{"action":"w
 Instructions used:
 
 ```json
-{"config":{"width":0},"steps":[{"action":"wait","ms":0}]}
+{ "config": { "width": 0 }, "steps": [{ "action": "wait", "ms": 0 }] }
 ```
 
 Observed result:
 
 ```json
-{"ok":false,"error":{"code":"VALIDATION_ERROR","message":"`config.width` must be a positive number.","details":0}}
+{
+  "ok": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "`config.width` must be a positive number.",
+    "details": 0
+  }
+}
 ```
 
 ## 4. Unsupported step action
@@ -79,13 +99,16 @@ bun run bunwright.ts --instructions '{"steps":[{"action":"explode"}]}'
 Instructions used:
 
 ```json
-{"steps":[{"action":"explode"}]}
+{ "steps": [{ "action": "explode" }] }
 ```
 
 Observed result:
 
 ```json
-{"ok":false,"error":{"code":"VALIDATION_ERROR","message":"Step 0 has an unsupported action: explode"}}
+{
+  "ok": false,
+  "error": { "code": "VALIDATION_ERROR", "message": "Step 0 has an unsupported action: explode" }
+}
 ```
 
 ## 5. Valid instructions, failing runtime environment
@@ -99,13 +122,19 @@ bun run bunwright.ts --instructions '{"steps":[{"action":"navigate","url":"https
 Instructions used:
 
 ```json
-{"steps":[{"action":"navigate","url":"https://example.com"}]}
+{ "steps": [{ "action": "navigate", "url": "https://example.com" }] }
 ```
 
 Observed result on this machine:
 
 ```json
-{"ok":false,"error":{"code":"ARGUMENT_ERROR","message":"Failed to spawn Chrome (set BUN_CHROME_PATH, backend.path, or install Chrome/Chromium)"}}
+{
+  "ok": false,
+  "error": {
+    "code": "ARGUMENT_ERROR",
+    "message": "Failed to spawn Chrome (set BUN_CHROME_PATH, backend.path, or install Chrome/Chromium)"
+  }
+}
 ```
 
 This payload is valid, but `Bun.WebView` could not start because Chrome or Chromium was not available in the current environment.

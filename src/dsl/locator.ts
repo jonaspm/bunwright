@@ -34,7 +34,9 @@ export class ElementHandle {
   }
 
   async dblClick(): Promise<void> {
-    await this.webview.evaluate(`(() => { const el = document.querySelector('${this.cssSelector}'); if (!el) return; const rect = el.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2; el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, clientX: x, clientY: y })); })()`);
+    await this.webview.evaluate(
+      `(() => { const el = document.querySelector('${this.cssSelector}'); if (!el) return; const rect = el.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2; el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, clientX: x, clientY: y })); })()`,
+    );
   }
 
   async type(text: string): Promise<void> {
@@ -119,7 +121,9 @@ export class Locator {
   private async waitForVisible(css: string, timeout: number): Promise<void> {
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
-      const visible = await this.webview.evaluate(`(() => { const el = document.querySelector('${css}'); if (!el) return false; const style = window.getComputedStyle(el); return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0; })()`) as boolean;
+      const visible = (await this.webview.evaluate(
+        `(() => { const el = document.querySelector('${css}'); if (!el) return false; const style = window.getComputedStyle(el); return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0; })()`,
+      )) as boolean;
       if (visible) return;
       await sleep(50);
     }
@@ -129,7 +133,9 @@ export class Locator {
   private async waitForEnabled(css: string, timeout: number): Promise<void> {
     const deadline = Date.now() + timeout;
     while (Date.now() < deadline) {
-      const enabled = await this.webview.evaluate(`(() => { const el = document.querySelector('${css}'); if (!el) return false; return !el.hasAttribute('disabled') && !el.hasAttribute('readonly'); })()`) as boolean;
+      const enabled = (await this.webview.evaluate(
+        `(() => { const el = document.querySelector('${css}'); if (!el) return false; return !el.hasAttribute('disabled') && !el.hasAttribute('readonly'); })()`,
+      )) as boolean;
       if (enabled) return;
       await sleep(50);
     }
@@ -148,7 +154,9 @@ export class Locator {
         return;
       } catch (error) {
         if (attempt === MAX_RETRIES) {
-          throw new TimeoutError(`Click failed after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`);
+          throw new TimeoutError(
+            `Click failed after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
         await sleep(getBackoffDelay(attempt));
       }
@@ -163,11 +171,15 @@ export class Locator {
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        await this.webview.evaluate(`(() => { const el = document.querySelector('${css}'); if (!el) return; const rect = el.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2; el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, clientX: x, clientY: y })); })()`);
+        await this.webview.evaluate(
+          `(() => { const el = document.querySelector('${css}'); if (!el) return; const rect = el.getBoundingClientRect(); const x = rect.left + rect.width / 2; const y = rect.top + rect.height / 2; el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, clientX: x, clientY: y })); })()`,
+        );
         return;
       } catch (error) {
         if (attempt === MAX_RETRIES) {
-          throw new TimeoutError(`DblClick failed after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`);
+          throw new TimeoutError(
+            `DblClick failed after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
         await sleep(getBackoffDelay(attempt));
       }
@@ -187,7 +199,9 @@ export class Locator {
         return;
       } catch (error) {
         if (attempt === MAX_RETRIES) {
-          throw new TimeoutError(`Type failed after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`);
+          throw new TimeoutError(
+            `Type failed after ${MAX_RETRIES} attempts: ${error instanceof Error ? error.message : String(error)}`,
+          );
         }
         await sleep(getBackoffDelay(attempt));
       }
@@ -199,7 +213,9 @@ export class Locator {
     await this.waitForVisible(css, this.retryTimeout);
     await this.waitForEnabled(css, this.retryTimeout);
 
-    await this.webview.evaluate(`(() => { const el = document.querySelector('${css}'); if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) { el.value = ''; } })()`);
+    await this.webview.evaluate(
+      `(() => { const el = document.querySelector('${css}'); if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) { el.value = ''; } })()`,
+    );
     await this.webview.click(css);
     await this.webview.type(text);
   }

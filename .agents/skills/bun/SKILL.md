@@ -15,6 +15,7 @@ Bun is a unified JavaScript runtime, package manager, bundler, and test runner w
 ## When to Use
 
 Use Bun when:
+
 - **Running scripts**: Execute TypeScript/JavaScript files directly without compilation steps (`bun run file.ts`)
 - **Managing dependencies**: Install, add, remove, or update packages faster than npm/yarn/pnpm (`bun install`, `bun add`)
 - **Bundling code**: Build JavaScript/TypeScript for browser or server targets with `bun build`
@@ -29,17 +30,17 @@ Do not use Bun for: type checking (use `tsc` separately), generating type declar
 
 ### Essential Commands
 
-| Task | Command | Notes |
-|------|---------|-------|
-| Run TypeScript file | `bun run file.ts` | Transpiles on-the-fly; omit `run` for short form |
-| Run package script | `bun run dev` | Executes script from `package.json` |
-| Install dependencies | `bun install` | Creates `bun.lock` lockfile |
-| Add package | `bun add react` | Adds to `dependencies`; use `-d` for dev |
-| Remove package | `bun remove react` | Removes from `package.json` and `node_modules` |
-| Run tests | `bun test` | Finds `*.test.ts`, `*.spec.ts` files automatically |
-| Build bundle | `bun build ./src/index.ts --outdir ./dist` | Bundles with tree-shaking, minification optional |
-| Watch mode | `bun --watch run file.ts` | Re-runs on file changes |
-| Create project | `bun init` | Scaffolds new project with templates |
+| Task                 | Command                                    | Notes                                              |
+| -------------------- | ------------------------------------------ | -------------------------------------------------- |
+| Run TypeScript file  | `bun run file.ts`                          | Transpiles on-the-fly; omit `run` for short form   |
+| Run package script   | `bun run dev`                              | Executes script from `package.json`                |
+| Install dependencies | `bun install`                              | Creates `bun.lock` lockfile                        |
+| Add package          | `bun add react`                            | Adds to `dependencies`; use `-d` for dev           |
+| Remove package       | `bun remove react`                         | Removes from `package.json` and `node_modules`     |
+| Run tests            | `bun test`                                 | Finds `*.test.ts`, `*.spec.ts` files automatically |
+| Build bundle         | `bun build ./src/index.ts --outdir ./dist` | Bundles with tree-shaking, minification optional   |
+| Watch mode           | `bun --watch run file.ts`                  | Re-runs on file changes                            |
+| Create project       | `bun init`                                 | Scaffolds new project with templates               |
 
 ### Configuration File: bunfig.toml
 
@@ -73,69 +74,76 @@ Bun natively handles: `.js`, `.jsx`, `.ts`, `.tsx`, `.json`, `.jsonc`, `.toml`, 
 
 ### Key Bun APIs
 
-| API | Purpose | Example |
-|-----|---------|---------|
-| `Bun.serve()` | Start HTTP server | `Bun.serve({ port: 3000, fetch: handler })` |
-| `Bun.file()` | Read/write files | `await Bun.file("path.txt").text()` |
-| `Bun.write()` | Write to disk | `await Bun.write("out.txt", data)` |
-| `Bun.build()` | Bundle code | `await Bun.build({ entrypoints, outdir })` |
-| `Bun.Transpiler` | Transpile code | `new Bun.Transpiler({ loader: "tsx" })` |
-| `Bun.spawn()` | Run child process | `Bun.spawn(["ls", "-la"])` |
+| API              | Purpose           | Example                                     |
+| ---------------- | ----------------- | ------------------------------------------- |
+| `Bun.serve()`    | Start HTTP server | `Bun.serve({ port: 3000, fetch: handler })` |
+| `Bun.file()`     | Read/write files  | `await Bun.file("path.txt").text()`         |
+| `Bun.write()`    | Write to disk     | `await Bun.write("out.txt", data)`          |
+| `Bun.build()`    | Bundle code       | `await Bun.build({ entrypoints, outdir })`  |
+| `Bun.Transpiler` | Transpile code    | `new Bun.Transpiler({ loader: "tsx" })`     |
+| `Bun.spawn()`    | Run child process | `Bun.spawn(["ls", "-la"])`                  |
 
 ## Decision Guidance
 
 ### When to Use Hoisted vs Isolated Linker
 
-| Scenario | Use | Reason |
-|----------|-----|--------|
-| New monorepo/workspaces | `isolated` | Prevents phantom dependencies, stricter isolation |
-| New single-package project | `hoisted` | Traditional npm behavior, simpler |
-| Existing project (pre-v1.3.2) | `hoisted` | Backward compatibility |
-| Migrating from pnpm | `isolated` | Matches pnpm's approach |
+| Scenario                      | Use        | Reason                                            |
+| ----------------------------- | ---------- | ------------------------------------------------- |
+| New monorepo/workspaces       | `isolated` | Prevents phantom dependencies, stricter isolation |
+| New single-package project    | `hoisted`  | Traditional npm behavior, simpler                 |
+| Existing project (pre-v1.3.2) | `hoisted`  | Backward compatibility                            |
+| Migrating from pnpm           | `isolated` | Matches pnpm's approach                           |
 
 Set in `bunfig.toml`: `linker = "isolated"` or via CLI: `bun install --linker isolated`
 
 ### When to Use bun build vs bun run
 
-| Use Case | Tool | Why |
-|----------|------|-----|
-| Execute TypeScript directly | `bun run` | Fast transpilation, no output files |
-| Prepare for production | `bun build` | Minification, tree-shaking, bundling |
-| Ship single executable | `bun build --compile` | Creates standalone binary |
-| Development server | `bun run` + `Bun.serve()` | Hot reload, fast iteration |
+| Use Case                    | Tool                      | Why                                  |
+| --------------------------- | ------------------------- | ------------------------------------ |
+| Execute TypeScript directly | `bun run`                 | Fast transpilation, no output files  |
+| Prepare for production      | `bun build`               | Minification, tree-shaking, bundling |
+| Ship single executable      | `bun build --compile`     | Creates standalone binary            |
+| Development server          | `bun run` + `Bun.serve()` | Hot reload, fast iteration           |
 
 ### When to Use --concurrent in Tests
 
-| Scenario | Use `--concurrent` | Reason |
-|----------|-------------------|--------|
-| Independent async tests | Yes | Parallel execution speeds up suite |
-| Tests with shared state | No | Use `test.serial()` for order-dependent tests |
-| Database/API tests | Maybe | Only if tests don't interfere |
-| Unit tests | Yes | Usually safe and faster |
+| Scenario                | Use `--concurrent` | Reason                                        |
+| ----------------------- | ------------------ | --------------------------------------------- |
+| Independent async tests | Yes                | Parallel execution speeds up suite            |
+| Tests with shared state | No                 | Use `test.serial()` for order-dependent tests |
+| Database/API tests      | Maybe              | Only if tests don't interfere                 |
+| Unit tests              | Yes                | Usually safe and faster                       |
 
 ## Workflow
 
 ### 1. Initialize a Project
+
 ```bash
 bun init my-app
 cd my-app
 ```
+
 Choose template: Blank, React, or Library. Creates `package.json`, `tsconfig.json`, `.gitignore`.
 
 ### 2. Install Dependencies
+
 ```bash
 bun install
 ```
+
 Reads `package.json`, downloads packages, creates `bun.lock`. Much faster than npm.
 
 ### 3. Add Packages
+
 ```bash
 bun add react
 bun add -d @types/react typescript
 ```
+
 Updates `package.json` and `bun.lock` automatically.
 
 ### 4. Write and Run Code
+
 ```bash
 # Create index.ts
 echo "console.log('Hello Bun!')" > index.ts
@@ -143,9 +151,11 @@ echo "console.log('Hello Bun!')" > index.ts
 # Run it
 bun run index.ts
 ```
+
 Bun transpiles TypeScript on-the-fly; no build step needed.
 
 ### 5. Create HTTP Server
+
 ```typescript
 // server.ts
 const server = Bun.serve({
@@ -156,11 +166,13 @@ const server = Bun.serve({
 });
 console.log(`Listening on ${server.url}`);
 ```
+
 ```bash
 bun run server.ts
 ```
 
 ### 6. Write Tests
+
 ```typescript
 // math.test.ts
 import { test, expect } from "bun:test";
@@ -169,22 +181,28 @@ test("2 + 2 = 4", () => {
   expect(2 + 2).toBe(4);
 });
 ```
+
 ```bash
 bun test
 ```
+
 Finds and runs all `*.test.ts` files automatically.
 
 ### 7. Bundle for Production
+
 ```bash
 bun build ./src/index.ts --outdir ./dist --minify
 ```
+
 Outputs optimized bundle to `dist/`. Use `--target browser|node|bun` to control output format.
 
 ### 8. Create Standalone Executable
+
 ```bash
 bun build ./cli.ts --outfile mycli --compile
 ./mycli
 ```
+
 Bundles code + Bun runtime into single executable; no dependencies needed.
 
 ## Common Gotchas
@@ -220,6 +238,7 @@ Before submitting work with Bun:
 **Comprehensive navigation**: https://bun.com/docs/llms.txt — Page-by-page listing of all Bun documentation.
 
 **Critical pages**:
+
 1. [Bun Runtime](https://bun.com/docs/runtime) — Execute files, scripts, and manage the runtime
 2. [Package Manager](https://bun.com/docs/pm/cli/install) — Install, add, remove packages and manage dependencies
 3. [Bundler](https://bun.com/docs/bundler) — Bundle JavaScript/TypeScript for production

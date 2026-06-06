@@ -28,11 +28,12 @@ class BunwrightBrowser {
         height: this.#resolvedConfig.height,
         url: this.#resolvedConfig.url,
         console: this.#resolvedConfig.console ? globalThis.console : undefined,
-        dataStore: this.#resolvedConfig.dataStore === "ephemeral"
-          ? "ephemeral"
-          : this.#resolvedConfig.dataStore
-            ? { directory: this.#resolvedConfig.dataStore }
-            : undefined,
+        dataStore:
+          this.#resolvedConfig.dataStore === "ephemeral"
+            ? "ephemeral"
+            : this.#resolvedConfig.dataStore
+              ? { directory: this.#resolvedConfig.dataStore }
+              : undefined,
       };
       this.#view = new WebView(opts);
     }
@@ -97,9 +98,9 @@ export class BrowserContext {
   #browser: BunwrightBrowser;
   #pages: Set<Page> = new Set();
 
-  constructor(view: WebView, browser: BunwrightBrowser) {
+  constructor(view: WebView, browserInstance: BunwrightBrowser) {
     this.#view = view;
-    this.#browser = browser;
+    this.#browser = browserInstance;
   }
 
   async newPage(): Promise<Page> {
@@ -170,14 +171,14 @@ export class Page {
     const start = Date.now();
 
     while (Date.now() - start < maxTime) {
-      const visible = await this.webview.evaluate(`
+      const visible = (await this.webview.evaluate(`
         (() => {
           const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
           if (!el) return false;
           const rect = el.getBoundingClientRect();
           return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).visibility !== 'hidden' && window.getComputedStyle(el).display !== 'none';
         })()
-      `) as boolean;
+      `)) as boolean;
 
       if (visible) {
         return;
@@ -195,13 +196,13 @@ export class Page {
     const start = Date.now();
 
     while (Date.now() - start < maxTime) {
-      const enabled = await this.webview.evaluate(`
+      const enabled = (await this.webview.evaluate(`
         (() => {
           const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
           if (!el) return false;
           return !el.hasAttribute('disabled') && !el.hasAttribute('readonly');
         })()
-      `) as boolean;
+      `)) as boolean;
 
       if (enabled) {
         return;
@@ -294,7 +295,10 @@ export class Page {
     return this;
   }
 
-  async scrollTo(sel: Selector, opts?: { block?: "start" | "center" | "end"; timeout?: number }): Promise<this> {
+  async scrollTo(
+    sel: Selector,
+    opts?: { block?: "start" | "center" | "end"; timeout?: number },
+  ): Promise<this> {
     await this.#ensureNotClosed();
     await this.#autoWait(sel, opts?.timeout);
     await this.webview.scrollTo(sel, opts?.block ? { block: opts.block } : undefined);
@@ -336,14 +340,14 @@ export class Page {
   async check(sel: Selector): Promise<this> {
     await this.#ensureNotClosed();
     const resolved = this.#resolver.resolve(sel);
-    const visible = await this.webview.evaluate(`
+    const visible = (await this.webview.evaluate(`
       (() => {
         const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
         if (!el) return false;
         const rect = el.getBoundingClientRect();
         return rect.width > 0 && rect.height > 0 && window.getComputedStyle(el).visibility !== 'hidden' && window.getComputedStyle(el).display !== 'none';
       })()
-    `) as boolean;
+    `)) as boolean;
 
     if (!visible) {
       throw new ElementNotFoundError(`Element ${sel} not visible`);
@@ -357,13 +361,13 @@ export class Page {
     const start = Date.now();
 
     while (Date.now() - start < maxTime) {
-      const isLoaded = await this.webview.evaluate(`
+      const isLoaded = (await this.webview.evaluate(`
         (() => {
           if (document.readyState === 'complete') return true;
           if (document.readyState === 'interactive' && '${state}' === 'domcontentloaded') return true;
           return document.readyState === '${state}';
         })()
-      `) as boolean;
+      `)) as boolean;
 
       if (isLoaded) {
         return this;
@@ -441,11 +445,11 @@ export class Page {
     const start = Date.now();
 
     while (Date.now() - start < maxTime) {
-      const found = await this.webview.evaluate(`
+      const found = (await this.webview.evaluate(`
         (() => {
           return document.querySelector('${resolved.css.replace(/'/g, "\\'")}') !== null;
         })()
-      `) as boolean;
+      `)) as boolean;
 
       if (found) {
         return;
