@@ -2,9 +2,9 @@
   "version": 1,
   "skills": {
     "bun": {
-      "source": "bun.sh",
-      "sourceType": "well-known",
-      "computedHash": "c20fe20eb84bb56fd5a96eae6e36c5fd8d38f989818a4944f8a08140fe5e7a5b"
+      "source": "midudev/autoskills",
+      "sourceType": "autoskills-registry",
+      "computedHash": "1386ed5490ed278e38312a416c9aa074dbe3849f32ae7f841e4142fef5d4df94"
     },
     "caveman": {
       "source": "JuliusBrussee/caveman",
@@ -13,8 +13,8 @@
     },
     "typescript-advanced-types": {
       "source": "wshobson/agents",
-      "sourceType": "github",
-      "computedHash": "ee8377c523a911be41c31037b477805773ca5ab5ade181e44ca7dd3cd8df6692"
+      "sourceType": "autoskills-registry",
+      "computedHash": "5ca0e177c6aaaba1889255691224daafdb7d71f317cc70bede1590d3907ded42"
     }
   }
 }

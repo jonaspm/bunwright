@@ -9,7 +9,7 @@ if (existsSync(distDir)) {
 }
 
 const result = await build({
-  entrypoints: ["./src/bunwright.ts"],
+  entrypoints: ["./src/bunwright.ts", "./src/dsl/index.ts"],
   outdir: distDir,
   target: "bun",
   format: "esm",
