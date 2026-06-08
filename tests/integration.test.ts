@@ -1,6 +1,5 @@
-import { describe, expect, test, beforeAll, afterAll } from "bun:test";
-import { browser, defineConfig, TimeoutError, ElementNotFoundError } from "../src/dsl";
-import type { BrowserContext, Page } from "../src/dsl/browser";
+import { describe, expect, test } from "bun:test";
+import { browser, TimeoutError } from "../src/dsl";
 
 const HAS_CHROME = await checkChrome();
 
@@ -16,14 +15,9 @@ async function checkChrome(): Promise<boolean> {
 
 const testIf = HAS_CHROME ? test : test.skip;
 
-async function newPage(): Promise<Page> {
-  const ctx = await browser.newContext();
-  return ctx.newPage();
-}
-
 describe("Integration: Basic Navigation", () => {
   testIf("navigates to URL and loads page", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     const title = await page.evaluate(() => document.title);
     expect(title).toBe("Example Domain");
@@ -33,7 +27,7 @@ describe("Integration: Basic Navigation", () => {
 
 describe("Integration: Chain Methods", () => {
   testIf("chain methods execute in sequence", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     await page.resize(800, 600);
     await page.screenshot();
@@ -44,7 +38,7 @@ describe("Integration: Chain Methods", () => {
 
 describe("Integration: Selector Resolution", () => {
   testIf("css: selector resolves to correct element", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     const link = page.locator("css:a");
     const text = await link.innerText();
@@ -55,7 +49,7 @@ describe("Integration: Selector Resolution", () => {
 
 describe("Integration: Locator Actions", () => {
   testIf("locator click works on real element", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     const link = page.locator("css:a").first();
     await link.click();
@@ -65,7 +59,7 @@ describe("Integration: Locator Actions", () => {
 
 describe("Integration: waitForURL", () => {
   testIf("waitForURL matches URL pattern", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     await page.waitForURL(/example\.com/);
     await browser.close();
@@ -74,7 +68,7 @@ describe("Integration: waitForURL", () => {
 
 describe("Integration: exists()", () => {
   testIf("exists returns true for present element", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     const exists = await page.exists("css:h1");
     expect(exists).toBe(true);
@@ -82,7 +76,7 @@ describe("Integration: exists()", () => {
   });
 
   testIf("exists returns false for missing element", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
     const exists = await page.exists("css:.does-not-exist");
     expect(exists).toBe(false);
@@ -92,7 +86,7 @@ describe("Integration: exists()", () => {
 
 describe("Integration: TimeoutError", () => {
   testIf("click throws TimeoutError on missing element", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
 
     await expect(page.click("css:.does-not-exist", { timeout: 1000 })).rejects.toThrow(
@@ -124,7 +118,7 @@ describe("Integration: Multi-Context", () => {
 
 describe("Integration: Locator Filter", () => {
   testIf("locator filter works", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
 
     const links = page.locator("css:a").filter("css:div");
@@ -137,7 +131,7 @@ describe("Integration: Locator Filter", () => {
 
 describe("Integration: evaluate()", () => {
   testIf("evaluate extracts data from page", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
 
     const result = await page.evaluate(() => ({
@@ -154,7 +148,7 @@ describe("Integration: evaluate()", () => {
 
 describe("Integration: cdp()", () => {
   testIf("cdp method sends Chrome DevTools Protocol call", async () => {
-    const page = await newPage();
+    const page = await browser.newPage();
     await page.navigate("https://example.com");
 
     const response = await page.cdp("Page.getNavigationHistory");

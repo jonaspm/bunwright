@@ -2,6 +2,8 @@
 
 import { browser } from "bunwright";
 
+console.log(browser);
+
 const page = await browser.newPage();
 
 await page

@@ -75,6 +75,11 @@ class BunwrightBrowser {
     return context;
   }
 
+  async newPage(opts?: ContextOptions): Promise<Page> {
+    const context = await this.newContext(opts);
+    return context.newPage();
+  }
+
   async close(): Promise<void> {
     for (const ctx of this.#contexts) {
       await ctx.close();
