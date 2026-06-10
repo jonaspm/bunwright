@@ -1,3 +1,13 @@
+/**
+ * Bunwright browser configuration.
+ *
+ * On Windows, `Bun.WebView` has a known issue spawning its own Chrome
+ * subprocess. To work around it, bunwright automatically launches Chrome
+ * itself with `--remote-debugging-port` and connects via the resulting
+ * WebSocket URL. In that mode, `backend.path` and `backend.argv` are
+ * ignored — the workaround overrides them with the externally-spawned
+ * Chrome's `webSocketDebuggerUrl`.
+ */
 export interface BrowserConfig {
   backend?: "webkit" | "chrome" | { type: "chrome"; path?: string; argv?: string[] };
   width?: number;
@@ -6,6 +16,12 @@ export interface BrowserConfig {
   console?: boolean;
   dataStore?: "ephemeral" | string;
   retryTimeout?: number;
+  /**
+   * When true, the externally-spawned Chrome (Windows workaround) runs in
+   * `--headless=new`. When false, it runs in headed mode. Defaults to true
+   * on Windows, false elsewhere.
+   */
+  headless?: boolean;
 }
 
 const DEFAULT_CONFIG: Required<Omit<BrowserConfig, "dataStore">> & {
@@ -17,6 +33,7 @@ const DEFAULT_CONFIG: Required<Omit<BrowserConfig, "dataStore">> & {
   retryTimeout: 10000,
   console: false,
   url: "",
+  headless: process.platform === "win32",
   dataStore: undefined,
 };
 

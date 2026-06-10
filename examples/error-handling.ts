@@ -20,9 +20,9 @@ try {
 const exists = await page.exists("role:button[name='Submit']");
 if (exists) {
   console.log("Submit button found");
+  await page.click("role:button[name='Submit']");
 } else {
-  console.log("No submit button, trying alternative");
-  await page.click("css:#submit-btn");
+  console.log("No submit button on this page, skipping");
 }
 
 await browser.close();

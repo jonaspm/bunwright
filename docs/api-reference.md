@@ -1,6 +1,6 @@
 # Bunwright DSL API Reference
 
-_Auto-generated from `dist/*.d.ts` on 2026-06-06. Do not edit by hand._
+_Auto-generated from `dist/*.d.ts` on 2026-06-10. Do not edit by hand._
 
 Source declarations live under `src/dsl/`. Regenerate this document with `bun run docs`.
 
@@ -29,7 +29,11 @@ _Declared in `dist/browser.d.ts`_
 
 **Constructor**
 
-- `constructor(view: WebView, browser: BunwrightBrowser)`
+- `constructor(view: WebView, browserInstance: BunwrightBrowser)`
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
 
 **Methods**
 
@@ -59,6 +63,10 @@ _Declared in `dist/locator.d.ts`_
 **Constructor**
 
 - `constructor(cssSelector: string, page: Page)`
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
 
 **Methods**
 
@@ -90,10 +98,14 @@ _Declared in `dist/locator.d.ts`_
 
 - `constructor(selector: Selector, page: Page)`
 
+**Properties**
+
+- `readonly [CHAINABLE]: true`
+
 **Methods**
 
 - `getPage(): Page`
-- `resolveSelector(): string`
+- `resolveSelector(): Promise<string>`
 - `click(opts?: { timeout?: number; }): Promise<void>`
 - `dblClick(opts?: { timeout?: number; }): Promise<void>`
 - `type(text: string, opts?: { timeout?: number; }): Promise<void>`
@@ -124,6 +136,7 @@ _Declared in `dist/browser.d.ts`_
 
 **Properties**
 
+- `readonly [CHAINABLE]: true`
 - `readonly webview: WebView`
 - `retryTimeout: number`
 
@@ -187,6 +200,23 @@ _Declared in `dist/config.d.ts`_
 - `console?: boolean`
 - `dataStore?: "ephemeral" | string`
 - `retryTimeout?: number`
+- `/**`
+- `* `--headless=new`. When false, it runs in headed mode. Defaults to true`
+- `* on Windows, false elsewhere.`
+- `*/`
+- `headless?: boolean`
+
+**Methods**
+
+- `* When true, the externally-spawned Chrome (Windows workaround) runs in`
+
+### `ChainTarget`
+
+_Declared in `dist/chain.d.ts`_
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
 
 ### `ContextOptions`
 
@@ -216,7 +246,7 @@ _Declared in `dist/selectors.d.ts`_
 _Declared in `dist/selectors.d.ts`_
 
 ```typescript
-"load" | "domcontentloaded" | "networkidle";
+"load" | "domcontentloaded" | "networkidle"
 ```
 
 ### `Selector`
@@ -224,10 +254,18 @@ _Declared in `dist/selectors.d.ts`_
 _Declared in `dist/selectors.d.ts`_
 
 ```typescript
-`role:${string}` | `label:${string}` | `text:${string}` | `css:${string}` | `xpath:${string}`;
+`role:${string}` | `label:${string}` | `text:${string}` | `css:${string}` | `xpath:${string}`
 ```
 
 ## Functions
+
+### `chainable`
+
+_Declared in `dist/chain.d.ts`_
+
+```typescript
+chainable(target: T): Chain<T>
+```
 
 ### `defineConfig`
 
@@ -236,3 +274,4 @@ _Declared in `dist/config.d.ts`_
 ```typescript
 defineConfig(config: BrowserConfig): BrowserConfig
 ```
+

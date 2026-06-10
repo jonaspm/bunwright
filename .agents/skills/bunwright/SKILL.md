@@ -1,159 +1,130 @@
 ---
 name: Bunwright
-description: Use this skill when you need a reusable, JSON-driven browser automation CLI based on `Bun.WebView`.
+description: Use this skill when you need lightweight, scriptable browser automation in Bun based on `Bun.WebView`.
 metadata:
   mintlify-proj: bun
-  version: "1.0"
+  version: "2.0"
 ---
 
 # Skill: bunwright
 
 ## When to Use This Skill
 
-Use this skill when you need a reusable, JSON-driven browser automation CLI based on `Bun.WebView`, especially when you want to:
+Use this skill when you need lightweight, scriptable browser automation in Bun based on `Bun.WebView`, especially when you want to:
 
-- run scripted browser steps from CI, scripts, or local tooling
-- keep automation steps in a JSON file instead of hardcoding them in TypeScript
-- reuse the `bunwright` package in another Bun project via `bun link`
-- document or generate instruction files for a `Bun.WebView` runner
+- run scripted browser flows from CI, scripts, or local tooling
+- write automation in TypeScript with a Playwright-style API without adopting Playwright
+- reuse the `bunwright` package in another Bun project via `bun link` or `bun add`
+- drive logins, form fills, screenshots, or data collection from Bun code
 
 ## What This Project Provides
 
-This repository exposes a CLI named `bunwright`.
+This repository exposes:
 
-It accepts one JSON instruction document and executes its steps sequentially through `Bun.WebView`.
+- a **library** — `import { browser } from "bunwright"` — a singleton wrapping one `Bun.WebView`
+- a **CLI** — `bunx bunwright <script.ts>` — loads `.env.local`/`.env`, imports the script, runs its default export
 
-### Supported input modes
+### Basic usage
+
+```ts
+// my-flow.ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", process.env.APP_USER!)
+  .type("label:Password", process.env.APP_PASSWORD!)
+  .click("role:button[name='Login']")
+  .waitForURL("**/dashboard")
+  .screenshot("./generated/dashboard.png");
+
+await browser.close();
+```
 
 ```bash
-bunx bunwright --file instructions.json
-bunx bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bunx bunwright my-flow.ts
 ```
 
 ### Runtime behavior
 
-- steps run sequentially
-- each step is awaited implicitly
-- explicit pauses use a `wait` step with milliseconds
-- failed steps retry up to 3 times
-- if the third attempt fails, the CLI exits non-zero and prints structured JSON to stderr
-- after success, the browser stays open for 10 seconds and then closes
+- page actions auto-wait for elements to be visible and enabled
+- failed actions retry up to 3 attempts with exponential backoff, within `retryTimeout` (default 10s)
+- `browser` lazily creates one shared `Bun.WebView`; contexts and pages all wrap it (no isolation)
+- `evaluate()` calls are serialized per WebView, so `Promise.all` over page/locator reads is safe
+- `browser.close()` closes the WebView and kills any externally-spawned Chrome
+- the CLI exits 0 on success, 1 on error (error message printed to stderr)
 
-## Link Into Another Project
+### Chaining
 
-From this repository:
+Page, Locator, and ElementHandle methods chain without intermediate awaits — chains are lazy queues flushed by `await`:
 
-```bash
-bun link
+- **Fail-fast**: a failed step skips everything queued after it; awaiting rejects with the original error (`instanceof TimeoutError` preserved)
+- **Await result**: resolves to the final target, or to the value if the last step returns one (`count()`, `evaluate()`, `exists()`)
+- **Per-step results**: `.all()` resolves with every step's result in call order
+
+```ts
+const [, , title] = await page
+  .navigate("https://example.com")
+  .click("role:button")
+  .evaluate(() => document.title)
+  .all();
 ```
 
-From the consuming repository:
+`waitForURL` accepts URL globs (`**/dashboard`) or a `RegExp`; globs match the full URL.
 
-```bash
-bun link bunwright
-```
+## Selectors
 
-Then run:
+Prefixed strings; unprefixed strings are treated as CSS:
 
-```bash
-bunx bunwright --file instructions.json
-```
+| Prefix   | Example                     | Matches by                |
+| -------- | --------------------------- | ------------------------- |
+| `css:`   | `css:button[type=submit]`   | CSS selector              |
+| `role:`  | `role:button[name='Login']` | ARIA role (and name)      |
+| `label:` | `label:Username`            | Associated `<label>` text |
+| `text:`  | `text:Sign in`              | Visible text content      |
+| `xpath:` | `xpath://button[1]`         | XPath expression          |
 
-## Instruction Document Shape
+## Configuration
 
-```json
-{
-  "config": {
-    "backend": "chrome",
-    "width": 1280,
-    "height": 800,
-    "console": true,
-    "dataStore": { "directory": "./generated/profile" }
-  },
-  "steps": [
-    { "action": "navigate", "url": "https://example.com" },
-    { "action": "wait", "ms": 1000 },
-    { "action": "screenshot", "path": "./generated/example.png", "format": "png" }
-  ]
-}
-```
+Via `bunwright.config.{ts,js,mjs}` in cwd, or `defineConfig()` in code. Resolution: defaults ← config file ← `defineConfig`.
 
-## Config Fields
+| Field          | Type                                                          | Notes                                                |
+| -------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
+| `backend`      | `"chrome" \| "webkit" \| { type: "chrome", path?, argv? }`    | Defaults to `"chrome"`                               |
+| `width`        | `number`                                                       | Defaults to `1280`                                   |
+| `height`       | `number`                                                       | Defaults to `800`                                    |
+| `url`          | `string`                                                       | Initial URL                                          |
+| `console`      | `boolean`                                                      | Forward page console output                          |
+| `dataStore`    | `"ephemeral" \| string`                                        | Directory path for persistent state                  |
+| `retryTimeout` | `number`                                                       | Default `10000` ms                                   |
+| `headless`     | `boolean`                                                      | Defaults to `true` on Windows, `false` elsewhere     |
 
-| Field       | Type         | Notes                                   |
-| ----------- | ------------ | --------------------------------------- | --------------------------------------------------------- | -------------------------------- |
-| `backend`   | `"chrome"    | "webkit"                                | { "type": "chrome", "path"?: string, "argv"?: string[] }` | Defaults to `chrome` in this CLI |
-| `width`     | `number`     | Positive viewport width                 |
-| `height`    | `number`     | Positive viewport height                |
-| `url`       | `string`     | Initial URL                             |
-| `console`   | `boolean`    | When true, forwards page console output |
-| `dataStore` | `"ephemeral" | { "directory": string }`                | Storage persistence                                       |
+## Key Page Methods
 
-## Supported Actions
+Chainable (return `this`): `navigate`, `back`, `forward`, `reload`, `click`, `dblClick`, `type`, `press`, `scroll`, `scrollTo`, `resize`, `screenshot`, `expect`, `check`, `waitForLoadState`.
 
-| Action       | Required fields                                        |
-| ------------ | ------------------------------------------------------ |
-| `navigate`   | `url`                                                  |
-| `click`      | `selector` or `x` and `y`                              |
-| `type`       | `selector`, `text`                                     |
-| `press`      | `key`, optional `modifiers`                            |
-| `evaluate`   | `script`                                               |
-| `wait`       | `ms`                                                   |
-| `screenshot` | optional `path`, optional `format`, optional `quality` |
-| `scroll`     | `dx`, `dy`                                             |
-| `scrollTo`   | `selector`, optional `block`                           |
-| `resize`     | `width`, `height`                                      |
-| `back`       | none                                                   |
-| `forward`    | none                                                   |
-| `reload`     | none                                                   |
+Non-chainable: `evaluate(fn)`, `locator(sel)`, `$`/`$$` (ElementHandle snapshots), `waitForSelector`, `waitForURL`, `exists`, `waitFor`, `waitForTimeout`, `cdp(method, params)`.
 
 ## Authoring Guidance
 
 - prefer `backend: "chrome"` for cross-platform use
-- keep `evaluate` scripts as expressions; wrap multi-statement logic in an IIFE
-- use `type` when you want to focus a selector and insert text exactly as given
-- use `wait` only for explicit timing gaps; normal step sequencing is already awaited
+- prefer `label:`/`role:` selectors over brittle CSS for form interactions
+- pass `evaluate` an arrow function; it is serialized and run in the page
+- avoid `waitForTimeout` when `waitForSelector`/`waitForURL`/`waitForLoadState` can express the condition
 - write screenshots to a file path when you need a durable artifact
+- put secrets in `.env`/`.env.local`; the CLI loads them before the script runs and never overrides existing env vars
 
-## Output Contract
+## Windows Notes
 
-Successful runs print JSON to stdout:
-
-```json
-{
-  "ok": true,
-  "steps": [
-    { "index": 0, "action": "navigate", "attempt": 1 },
-    {
-      "index": 1,
-      "action": "screenshot",
-      "attempt": 1,
-      "screenshotPath": "./generated/example.png"
-    }
-  ],
-  "closingInMs": 10000
-}
-```
-
-Failed runs print JSON to stderr:
-
-```json
-{
-  "ok": false,
-  "error": {
-    "code": "STEP_FAILED",
-    "message": "Step 1 failed after 3 attempts.",
-    "stepIndex": 1,
-    "stepAction": "click",
-    "attempts": 3
-  }
-}
-```
+`Bun.WebView`'s built-in Chrome spawn fails on Windows. bunwright launches Chrome itself with `--remote-debugging-port` and connects via `webSocketDebuggerUrl`. In this mode `backend.path`/`backend.argv` are ignored; executable resolution is `BUN_CHROME_PATH` → `config.backend.path` → common install locations. `BUNWRIGHT_DEBUG=1` logs the spawned port.
 
 ## Repository References
 
-- CLI entrypoint: `bunwright.ts`
-- schema docs: `docs/instructions-schema.md`
-- sample input: `instructions.json`
+- CLI entrypoint: `src/bunwright.ts`
+- library entrypoint: `src/dsl/index.ts`
+- API reference: `docs/api-reference.md` (auto-generated; regenerate with `bun run docs`)
+- runnable examples: `examples/*.ts`
 
-Use those files as the source of truth when adapting the CLI in another project.
+Use those files as the source of truth when adapting bunwright in another project.

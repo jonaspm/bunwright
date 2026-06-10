@@ -2,6 +2,7 @@ import type { WebView } from "bun";
 import type { Selector } from "./selectors.js";
 import { SelectorResolver } from "./selectors.js";
 import { TimeoutError, ElementNotFoundError } from "./errors.js";
+import { CHAINABLE } from "./chain.js";
 
 interface Page {
   webview: WebView;
@@ -20,6 +21,8 @@ function getBackoffDelay(attempt: number): number {
 }
 
 export class ElementHandle {
+  readonly [CHAINABLE] = true as const;
+
   constructor(
     private cssSelector: string,
     private page: Page,
@@ -87,6 +90,7 @@ export class ElementHandle {
 }
 
 export class Locator {
+  readonly [CHAINABLE] = true as const;
   private selectorResolver: SelectorResolver;
   private filters: Selector[] = [];
 
@@ -109,10 +113,10 @@ export class Locator {
     return this.page.retryTimeout;
   }
 
-  resolveSelector(): string {
-    let css = this.selectorResolver.resolve(this.selector).css;
+  async resolveSelector(): Promise<string> {
+    let css = (await this.selectorResolver.resolve(this.selector)).css;
     for (const filter of this.filters) {
-      const filterCss = this.selectorResolver.resolve(filter).css;
+      const filterCss = (await this.selectorResolver.resolve(filter)).css;
       css = `${css} ${filterCss}`;
     }
     return css;
@@ -144,7 +148,7 @@ export class Locator {
 
   async click(opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? this.retryTimeout;
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     await this.waitForVisible(css, timeout);
     await this.waitForEnabled(css, timeout);
 
@@ -165,7 +169,7 @@ export class Locator {
 
   async dblClick(opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? this.retryTimeout;
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     await this.waitForVisible(css, timeout);
     await this.waitForEnabled(css, timeout);
 
@@ -188,7 +192,7 @@ export class Locator {
 
   async type(text: string, opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? this.retryTimeout;
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     await this.waitForVisible(css, timeout);
     await this.waitForEnabled(css, timeout);
 
@@ -209,7 +213,7 @@ export class Locator {
   }
 
   async fill(text: string): Promise<void> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     await this.waitForVisible(css, this.retryTimeout);
     await this.waitForEnabled(css, this.retryTimeout);
 
@@ -221,7 +225,7 @@ export class Locator {
   }
 
   async press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise<void> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     await this.waitForVisible(css, this.retryTimeout);
     await this.webview.press(key, modifiers ? { modifiers } : undefined);
   }
@@ -234,43 +238,43 @@ export class Locator {
   }
 
   async evaluate<T>(fn: (el: any) => T): Promise<T> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `(() => { const el = document.querySelector('${css}'); if (!el) return null; return (${fn.toString()})(el); })()`;
     return this.webview.evaluate(script) as Promise<T>;
   }
 
   async innerText(): Promise<string> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `document.querySelector('${css}')?.textContent ?? ''`;
     return this.webview.evaluate(script) as Promise<string>;
   }
 
   async innerHTML(): Promise<string> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `document.querySelector('${css}')?.innerHTML ?? ''`;
     return this.webview.evaluate(script) as Promise<string>;
   }
 
   async getAttribute(name: string): Promise<string | null> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `document.querySelector('${css}')?.getAttribute('${name}') ?? null`;
     return this.webview.evaluate(script) as Promise<string | null>;
   }
 
   async isVisible(): Promise<boolean> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `(() => { const el = document.querySelector('${css}'); if (!el) return false; const style = window.getComputedStyle(el); return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0; })()`;
     return this.webview.evaluate(script) as Promise<boolean>;
   }
 
   async isEnabled(): Promise<boolean> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `(() => { const el = document.querySelector('${css}'); if (!el) return false; return !el.hasAttribute('disabled') && !el.hasAttribute('readonly'); })()`;
     return this.webview.evaluate(script) as Promise<boolean>;
   }
 
   async isChecked(): Promise<boolean> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `(() => { const el = document.querySelector('${css}'); if (!el) return false; return (el as HTMLInputElement).checked ?? false; })()`;
     return this.webview.evaluate(script) as Promise<boolean>;
   }
@@ -294,13 +298,13 @@ export class Locator {
   }
 
   async count(): Promise<number> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     const script = `document.querySelectorAll('${css}').length`;
     return this.webview.evaluate(script) as Promise<number>;
   }
 
   async toElement(): Promise<ElementHandle> {
-    const css = this.resolveSelector();
+    const css = await this.resolveSelector();
     await this.waitForVisible(css, this.retryTimeout);
     return new ElementHandle(css, this.page);
   }
@@ -315,7 +319,7 @@ class IndexLocator extends Locator {
   }
 
   override async toElement(): Promise<ElementHandle> {
-    const css = this.inner.resolveSelector();
+    const css = await this.inner.resolveSelector();
     const total = await this.inner.count();
     const actualIndex = this.index === -1 ? total - 1 : this.index;
 

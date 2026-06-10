@@ -11,36 +11,36 @@ import {
 } from "../src/dsl/errors";
 
 describe("SelectorResolver", () => {
-  test("css: prefix passes through directly", () => {
+  test("css: prefix passes through directly", async () => {
     const mockView = { evaluate: () => null } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("css:.my-class" as Selector);
+    const result = await resolver.resolve("css:.my-class" as Selector);
     expect(result.css).toBe(".my-class");
     expect(result.isCoordinate).toBe(false);
   });
 
-  test("xpath: prefix passes through directly (falls back when evaluate returns null)", () => {
+  test("xpath: prefix passes through directly (falls back when evaluate returns null)", async () => {
     const mockView = { evaluate: () => null } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("xpath://div" as Selector);
+    const result = await resolver.resolve("xpath://div" as Selector);
     expect(result.css).toBe("xpath=//div");
     expect(result.isCoordinate).toBe(false);
   });
 
-  test("plain string passes through as css", () => {
+  test("plain string passes through as css", async () => {
     const mockView = { evaluate: () => null } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("#my-id" as Selector);
+    const result = await resolver.resolve("#my-id" as Selector);
     expect(result.css).toBe("#my-id");
     expect(result.isCoordinate).toBe(false);
   });
 
-  test("cache returns same result on repeated resolve", () => {
+  test("cache returns same result on repeated resolve", async () => {
     const mockView = { evaluate: () => null } as any;
     const resolver = new SelectorResolver(mockView);
 
-    const result1 = resolver.resolve("css:.test" as Selector);
-    const result2 = resolver.resolve("css:.test" as Selector);
+    const result1 = await resolver.resolve("css:.test" as Selector);
+    const result2 = await resolver.resolve("css:.test" as Selector);
 
     expect(result1.css).toBe(result2.css);
     expect(result1.css).toBe(".test");
@@ -51,7 +51,7 @@ describe("SelectorResolver", () => {
       evaluate: () => "button",
     } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("role=button" as Selector);
+    const result = await resolver.resolve("role=button" as Selector);
     expect(result.css).toBe("button");
   });
 
@@ -60,7 +60,7 @@ describe("SelectorResolver", () => {
       evaluate: () => 'input[type="text"]',
     } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("label:Username" as Selector);
+    const result = await resolver.resolve("label:Username" as Selector);
     expect(result.css).toBe('input[type="text"]');
   });
 
@@ -69,7 +69,7 @@ describe("SelectorResolver", () => {
       evaluate: () => "div",
     } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("text:Click me" as Selector);
+    const result = await resolver.resolve("text:Click me" as Selector);
     expect(result.css).toBe("div");
   });
 });
@@ -186,20 +186,20 @@ describe("Selector Type Validation", () => {
     expect(sel.startsWith("text:")).toBe(true);
   });
 
-  test("plain string selector handled at runtime (TypeScript may reject)", () => {
+  test("plain string selector handled at runtime (TypeScript may reject)", async () => {
     // Note: Selector type doesn't include plain strings, but runtime does
     // This tests that the resolver handles unprefixed strings as CSS
     const mockView = { evaluate: () => null } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("#my-id" as Selector);
+    const result = await resolver.resolve("#my-id" as Selector);
     expect(result.css).toBe("#my-id");
   });
 
-  test("role with name syntax handled at runtime", () => {
+  test("role with name syntax handled at runtime", async () => {
     // role:role[name='value'] syntax - when evaluate returns null, fallback includes name
     const mockView = { evaluate: () => null } as any;
     const resolver = new SelectorResolver(mockView);
-    const result = resolver.resolve("role:button[name='Submit']" as Selector);
+    const result = await resolver.resolve("role:button[name='Submit']" as Selector);
     expect(result.css).toContain("button");
     expect(result.isCoordinate).toBe(false);
   });

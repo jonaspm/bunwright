@@ -2,10 +2,14 @@ import { WebView } from "bun";
 import type { BrowserConfig } from "./config.js";
 import { resolveConfig } from "./config.js";
 import type { Selector } from "./selectors.js";
-import { SelectorResolver } from "./selectors.js";
+import { SelectorResolver, globToRegex } from "./selectors.js";
 import type { LoadState } from "./selectors.js";
 import { TimeoutError, ElementNotFoundError } from "./errors.js";
+import type { Chain } from "./chain.js";
+import { CHAINABLE, chainable } from "./chain.js";
 import type { Locator } from "./locator.js";
+import type { ChromeSpawnHandle } from "./chrome-spawn.js";
+import { spawnChrome, findFreePort } from "./chrome-spawn.js";
 
 export interface ContextOptions {
   viewport?: { width: number; height: number };
@@ -13,29 +17,83 @@ export interface ContextOptions {
   cookies?: Array<{ name: string; value: string; domain?: string; path?: string }>;
 }
 
+/**
+ * Bun.WebView rejects concurrent evaluate() calls ("an evaluate() is already
+ * pending"), so all evaluates on a view are funneled through a single queue.
+ * Needed for parallel use like Promise.all([page.evaluate(...), locator.innerText()]).
+ */
+function serializeEvaluate(view: WebView): void {
+  const original = view.evaluate.bind(view);
+  let tail: Promise<unknown> = Promise.resolve();
+  const queued = (script: string) => {
+    const run = tail.then(
+      () => original(script),
+      () => original(script),
+    );
+    tail = run.catch(() => {});
+    return run;
+  };
+  Object.defineProperty(view, "evaluate", { value: queued });
+}
+
 class BunwrightBrowser {
   #config: BrowserConfig = {};
   #resolvedConfig: Awaited<ReturnType<typeof resolveConfig>> | null = null;
   #view: WebView | null = null;
+  #chromeHandle: ChromeSpawnHandle | null = null;
   #contexts: Set<BrowserContext> = new Set();
 
   async #ensureView(): Promise<WebView> {
     if (!this.#view) {
       this.#resolvedConfig = await resolveConfig();
+      let backend = this.#resolvedConfig.backend;
+      let dataStore: Bun.WebView.ConstructorOptions["dataStore"];
+      if (this.#resolvedConfig.dataStore === "ephemeral") {
+        dataStore = "ephemeral";
+      } else if (this.#resolvedConfig.dataStore) {
+        dataStore = { directory: this.#resolvedConfig.dataStore };
+      }
+
+      if (
+        process.platform === "win32" &&
+        (backend === "chrome" ||
+          (typeof backend === "object" && backend?.type === "chrome"))
+      ) {
+        const configPath =
+          typeof backend === "object" && backend?.type === "chrome"
+            ? backend.path
+            : undefined;
+        const port = await findFreePort();
+        const handle = await spawnChrome({
+          path: configPath,
+          port,
+          headless: this.#resolvedConfig.headless,
+          width: this.#resolvedConfig.width,
+          height: this.#resolvedConfig.height,
+          dataStore,
+        });
+        this.#chromeHandle = handle;
+        backend = {
+          type: "chrome",
+          url: handle.webSocketDebuggerUrl,
+        } as unknown as typeof backend;
+        if (process.env.BUNWRIGHT_DEBUG) {
+          console.log(
+            `[bunwright] Spawned Chrome on port ${port} (Windows workaround)`,
+          );
+        }
+      }
+
       const opts: Bun.WebView.ConstructorOptions = {
-        backend: this.#resolvedConfig.backend,
+        backend,
         width: this.#resolvedConfig.width,
         height: this.#resolvedConfig.height,
         url: this.#resolvedConfig.url,
         console: this.#resolvedConfig.console ? globalThis.console : undefined,
-        dataStore:
-          this.#resolvedConfig.dataStore === "ephemeral"
-            ? "ephemeral"
-            : this.#resolvedConfig.dataStore
-              ? { directory: this.#resolvedConfig.dataStore }
-              : undefined,
+        dataStore,
       };
       this.#view = new WebView(opts);
+      serializeEvaluate(this.#view);
     }
     return this.#view;
   }
@@ -46,7 +104,7 @@ class BunwrightBrowser {
     }
   }
 
-  async newContext(opts?: ContextOptions): Promise<BrowserContext> {
+  async newContext(opts?: ContextOptions): Promise<Chain<BrowserContext>> {
     const view = await this.#ensureView();
 
     if (opts?.viewport) {
@@ -72,10 +130,10 @@ class BunwrightBrowser {
 
     const context = new BrowserContext(view, this);
     this.#contexts.add(context);
-    return context;
+    return chainable(context);
   }
 
-  async newPage(opts?: ContextOptions): Promise<Page> {
+  async newPage(opts?: ContextOptions): Promise<Chain<Page>> {
     const context = await this.newContext(opts);
     return context.newPage();
   }
@@ -89,6 +147,10 @@ class BunwrightBrowser {
       this.#view.close();
       this.#view = null;
     }
+    if (this.#chromeHandle) {
+      this.#chromeHandle.kill();
+      this.#chromeHandle = null;
+    }
   }
 
   removeContext(context: BrowserContext): void {
@@ -99,6 +161,7 @@ class BunwrightBrowser {
 export const browser = new BunwrightBrowser();
 
 export class BrowserContext {
+  readonly [CHAINABLE] = true as const;
   #view: WebView;
   #browser: BunwrightBrowser;
   #pages: Set<Page> = new Set();
@@ -124,6 +187,7 @@ export class BrowserContext {
 }
 
 export class Page {
+  readonly [CHAINABLE] = true as const;
   readonly webview: WebView;
   retryTimeout: number;
   #closed = false;
@@ -171,7 +235,7 @@ export class Page {
   }
 
   async #waitForElementVisible(sel: Selector, timeout?: number): Promise<void> {
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     const maxTime = timeout ?? this.retryTimeout;
     const start = Date.now();
 
@@ -196,7 +260,7 @@ export class Page {
   }
 
   async #waitForElementEnabled(sel: Selector, timeout?: number): Promise<void> {
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     const maxTime = timeout ?? this.retryTimeout;
     const start = Date.now();
 
@@ -255,7 +319,7 @@ export class Page {
     await this.#ensureNotClosed();
     await this.#retry(async () => {
       await this.#autoWait(sel, opts?.timeout);
-      const resolved = this.#resolver.resolve(sel);
+      const resolved = await this.#resolver.resolve(sel);
       await this.webview.click(resolved.css);
     }, opts?.timeout);
     return this;
@@ -265,7 +329,7 @@ export class Page {
     await this.#ensureNotClosed();
     await this.#retry(async () => {
       await this.#autoWait(sel, opts?.timeout);
-      const resolved = this.#resolver.resolve(sel);
+      const resolved = await this.#resolver.resolve(sel);
       await this.webview.evaluate(`
         (() => {
           const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
@@ -328,7 +392,7 @@ export class Page {
   async expect(sel: Selector, opts?: { timeout?: number }): Promise<this> {
     await this.#ensureNotClosed();
     await this.#retry(async () => {
-      const resolved = this.#resolver.resolve(sel);
+      const resolved = await this.#resolver.resolve(sel);
       await this.webview.evaluate(`
         (() => {
           const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
@@ -344,7 +408,7 @@ export class Page {
 
   async check(sel: Selector): Promise<this> {
     await this.#ensureNotClosed();
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     const visible = (await this.webview.evaluate(`
       (() => {
         const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
@@ -401,7 +465,7 @@ export class Page {
 
   async $(sel: Selector): Promise<import("./locator.js").ElementHandle | null> {
     await this.#ensureNotClosed();
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     const result = await this.webview.evaluate(`
       (() => {
         const el = document.querySelector('${resolved.css.replace(/'/g, "\\'")}');
@@ -423,7 +487,7 @@ export class Page {
 
   async $$(sel: Selector): Promise<import("./locator.js").ElementHandle[]> {
     await this.#ensureNotClosed();
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     return this.webview.evaluate(`
       (() => {
         const els = document.querySelectorAll('${resolved.css.replace(/'/g, "\\'")}');
@@ -445,7 +509,7 @@ export class Page {
 
   async waitForSelector(sel: Selector, opts?: { timeout?: number }): Promise<void> {
     await this.#ensureNotClosed();
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     const maxTime = opts?.timeout ?? this.retryTimeout;
     const start = Date.now();
 
@@ -470,7 +534,7 @@ export class Page {
     await this.#ensureNotClosed();
     const maxTime = opts?.timeout ?? this.retryTimeout;
     const start = Date.now();
-    const pattern = url instanceof RegExp ? url : new RegExp(url);
+    const pattern = url instanceof RegExp ? url : globToRegex(url);
 
     while (Date.now() - start < maxTime) {
       const currentUrl = this.webview.url;
@@ -485,7 +549,7 @@ export class Page {
 
   async exists(sel: Selector): Promise<boolean> {
     await this.#ensureNotClosed();
-    const resolved = this.#resolver.resolve(sel);
+    const resolved = await this.#resolver.resolve(sel);
     return this.webview.evaluate(`
       (() => {
         return document.querySelector('${resolved.css.replace(/'/g, "\\'")}') !== null;

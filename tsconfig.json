@@ -25,7 +25,12 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+
+    // Resolve the package name to source so examples/ typecheck against src
+    "paths": {
+      "bunwright": ["./src/dsl/index.ts"]
+    }
   },
-  "exclude": ["dist", "examples"]
+  "exclude": ["dist"]
 }
