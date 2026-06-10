@@ -7,136 +7,263 @@
 </p>
 
 <p align="center">
-  JSON-driven browser automation built on <code>Bun.WebView</code>.
-  <br />
-  A smaller, Bun-native alternative for automation flows where Playwright would be heavier than necessary.
+  TypeScript-first browser automation built on <code>Bun.WebView</code> —
+  a smaller, Bun-native alternative for flows where Playwright would be heavier than necessary.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/bunwright"><img src="https://img.shields.io/npm/v/bunwright" alt="npm version"></a>
+  <a href="https://github.com/jonaspm/bunwright/actions/workflows/test.yml"><img src="https://github.com/jonaspm/bunwright/actions/workflows/test.yml/badge.svg" alt="CI"></a>
+  <a href="./LICENSE.md"><img src="https://img.shields.io/badge/license-LGPL--2.1-blue" alt="License: LGPL-2.1"></a>
 </p>
 
 ---
 
-`bunwright` is a lightweight browser automation tool for Bun focused on simple, scriptable workflows.
-It lets you describe browser actions as JSON and execute them through `Bun.WebView`, making it useful for local automation, repeatable UI flows, and small browser-driven utilities.
+```ts
+import { browser } from "bunwright";
 
-If you want a Playwright alternative for Bun that is smaller in scope, faster to wire into Bun projects, and centered on lightweight automation instead of a full end-to-end testing stack, `bunwright` is built for that space.
+const page = await browser.newPage();
+
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", "user@example.com")
+  .type("label:Password", process.env.APP_PASSWORD!)
+  .click("role:button[name='Login']")
+  .waitForURL("**/dashboard")
+  .screenshot("./dashboard.png");
+
+await browser.close();
+```
+
+## Why Bunwright
+
+Playwright is a full end-to-end testing stack: browser downloads, test runner, fixtures, reporters. For a login script, a screenshot job, or a small scraping task inside a Bun project, that is a lot of machinery.
+
+Bunwright targets exactly that space:
+
+- **Bun-native** — built directly on `Bun.WebView`, zero runtime dependencies, no browser downloads. Uses the Chrome or WebKit already on the machine.
+- **Playwright-style API** — pages, locators, auto-waiting, semantic selectors. Familiar surface, smaller scope.
+- **Chainable** — actions queue lazily and run on `await`, with fail-fast semantics and per-step results.
+- **Scriptable** — write a TypeScript file, run it with `bunx bunwright script.ts` or plain `bun run`. `.env` loading built in.
+
+It is **not** a test framework. There are no fixtures, parallel workers, or trace viewers — for full end-to-end test suites, use Playwright.
 
 ## Use Cases
 
-- Automate repetitive internal web workflows such as logins, form filling, and admin panel tasks
-- Capture screenshots of pages or post-login states from scripted browser sessions
+- Automate repetitive internal web workflows: logins, form filling, admin panel tasks
+- Capture screenshots of pages or post-login states from scripted sessions
 - Run lightweight browser-driven data collection or verification flows
 - Prototype browser automations in Bun without adopting a larger testing framework
-- Execute JSON-defined automation steps from other Bun tools, scripts, or local CLIs
+- Drive browser automation from other Bun tools, scripts, or local CLIs
 
-## Install
-
-### npm
-
-Install globally with npm:
+## Installation
 
 ```bash
-npm install -g bunwright
+bun add bunwright        # as a project dependency
+npm install -g bunwright # or globally, for the CLI
 ```
 
-Then run:
-
-```bash
-bunwright --file instructions.json
-```
-
-### Development
-
-Install dependencies in this repository:
-
-```bash
-bun install
-```
-
-Run the CLI directly during development:
-
-```bash
-bun run bunwright.ts --help
-```
+Requires [Bun](https://bun.com) and an existing Chrome (or WebKit) installation — bunwright does not download browsers.
 
 ## Quick Start
 
-Run a JSON instruction file:
+Write a script:
 
-```bash
-bunx bunwright --file instructions.json
+```ts
+// shot.ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+await page.navigate("https://example.com").screenshot("./example.png");
+await browser.close();
 ```
 
-Or pass instructions inline:
+Run it:
 
 ```bash
-bunx bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bunx bunwright shot.ts
 ```
 
-Schema documentation lives in `docs/instructions-schema.md`.
-Sample input lives in `instructions.json`.
+The CLI loads `.env.local`/`.env` first and runs the script's default export if one exists. The CLI is optional — any `bun run` script can import `bunwright` directly.
 
-## Example
+## Selectors
 
-Example instruction document:
+Selectors are prefixed strings; unprefixed strings are treated as CSS.
 
-```json
-{
-  "config": {
-    "backend": "chrome",
-    "width": 1440,
-    "height": 900,
-    "console": true
-  },
-  "steps": [
-    { "action": "navigate", "url": "https://example.com/login" },
-    { "action": "type", "selector": "input[name=email]", "text": "user@example.com" },
-    { "action": "click", "selector": "button[type=submit]" },
-    { "action": "wait", "ms": 1500 },
-    { "action": "screenshot", "path": "./generated/login.png", "format": "png" }
-  ]
+| Prefix   | Example                     | Matches by                |
+| -------- | --------------------------- | ------------------------- |
+| `css:`   | `css:button[type=submit]`   | CSS selector              |
+| `role:`  | `role:button[name='Login']` | ARIA role + name          |
+| `label:` | `label:Username`            | Associated `<label>` text |
+| `text:`  | `text:Sign in`              | Visible text content      |
+| `xpath:` | `xpath://button[1]`         | XPath expression          |
+
+`role:` matches explicit `[role=...]` attributes **and** implicit roles — `role:button` finds `<button>`, `input[type=submit]`, and `[role="button"]` elements. The optional `[name='...']` part matches against `aria-label`, input value, or trimmed text content.
+
+Every page action auto-waits for the element to be visible and enabled, then retries up to 3 times with exponential backoff within `retryTimeout` (10s by default).
+
+## Chaining
+
+Methods on `Page`, `Locator`, and `ElementHandle` chain without intermediate awaits. A chain is a lazy queue: each call enqueues a step, awaiting executes them sequentially.
+
+```ts
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", "user")
+  .click("role:button[name='Login']")
+  .waitForURL("**/dashboard");
+```
+
+**Fail-fast.** If a step throws, every step queued after it is skipped, and the `await` rejects with the original error:
+
+```ts
+import { browser, TimeoutError } from "bunwright";
+
+try {
+  await page
+    .navigate("https://example.com")
+    .click("role:button[name='Missing']") // throws TimeoutError
+    .waitForURL("**/success");            // never runs
+} catch (error) {
+  if (error instanceof TimeoutError) {
+    // handle, fall back, continue
+  }
 }
 ```
 
-Run it with:
+**Await result.** Awaiting a chain resolves to the final target — the page, or a locator if the chain switched to one. If the last step returns a value (`count()`, `evaluate()`, `exists()`), awaiting resolves to that value:
 
-```bash
-bunx bunwright --file instructions.json
+```ts
+const count = await page.locator("css:input").count(); // number
+const title = await page.evaluate(() => document.title); // string
 ```
 
-On success, `bunwright` prints structured JSON to stdout describing the executed steps.
+**Per-step results.** Call `.all()` instead of awaiting to get every step's result as an array, in call order:
 
-## Link The CLI Into Another Bun Project
-
-From this repository:
-
-```bash
-bun link
+```ts
+const [, , title] = await page
+  .navigate("https://example.com")
+  .click("role:button")
+  .evaluate(() => document.title)
+  .all();
 ```
 
-From the other project:
+## API Overview
 
-```bash
-bun link bunwright
+Full reference: [`docs/api-reference.md`](./docs/api-reference.md) (generated from the type declarations).
+
+### `browser`
+
+Singleton entry point.
+
+| Method                | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `newPage(options?)`   | Open a page (creates the WebView lazily)             |
+| `newContext(options?)`| Create a context (viewport, extra headers, cookies)  |
+| `close()`             | Close all contexts, the WebView, and spawned Chrome  |
+
+### `Page`
+
+| Group       | Methods                                                                       |
+| ----------- | ----------------------------------------------------------------------------- |
+| Navigation  | `navigate`, `back`, `forward`, `reload`, `waitForLoadState`, `waitForURL`     |
+| Interaction | `click`, `dblClick`, `type`, `press`, `scroll`, `scrollTo`, `resize`          |
+| Inspection  | `evaluate`, `locator`, `$`, `$$`, `exists`, `expect`, `check`, `screenshot`   |
+| Waiting     | `waitForSelector`, `waitFor`, `waitForTimeout`                                |
+| Low-level   | `cdp(method, params)` — raw Chrome DevTools Protocol calls                    |
+
+`waitForURL` accepts a URL glob (`**` spans `/`, `*` stays within a segment, `?` is one character; anchored to the full URL) or a `RegExp`.
+
+### `Locator`
+
+Created with `page.locator(selector)`. Lazy — resolves on each action.
+
+| Group      | Methods                                                                     |
+| ---------- | ---------------------------------------------------------------------------- |
+| Actions    | `click`, `dblClick`, `type`, `fill`, `press`, `screenshot`                  |
+| Reading    | `innerText`, `innerHTML`, `getAttribute`, `evaluate`, `count`               |
+| State      | `isVisible`, `isEnabled`, `isChecked`                                       |
+| Narrowing  | `filter`, `first`, `last`, `nth`, `toElement`                               |
+
+### Errors
+
+All errors extend `BunwrightError`: `TimeoutError`, `ElementNotFoundError`, `SelectorError`, `BrowserError`. Import them to branch on failure type.
+
+## Configuration
+
+Via `bunwright.config.ts` in the project root, or programmatically with `defineConfig`:
+
+```ts
+// bunwright.config.ts
+import { defineConfig } from "bunwright";
+
+export default defineConfig({
+  backend: "chrome",      // "webkit" | "chrome" | { type: "chrome", path, argv }
+  width: 1440,            // default 1280
+  height: 900,            // default 800
+  url: "",                // initial URL when the WebView opens
+  console: true,          // forward page console logs
+  dataStore: "ephemeral", // or a directory path for persistent state
+  retryTimeout: 10000,    // auto-wait/retry budget per action, ms
+  headless: true,         // default: true on Windows, false elsewhere
+});
 ```
 
-Then run the linked executable:
+Resolution order: built-in defaults ← config file ← `defineConfig()` call.
+
+## Environment Variables
+
+The CLI loads `.env.local` and `.env` from the working directory before running the script. Existing environment variables are never overridden.
+
+| Variable          | Effect                                                        |
+| ----------------- | ------------------------------------------------------------- |
+| `BUN_CHROME_PATH` | Path to the Chrome executable (checked first on Windows)      |
+| `BUNWRIGHT_DEBUG` | `1` logs the spawned Chrome debug port (Windows workaround)   |
+
+## Windows
+
+`Bun.WebView` has a known issue spawning its own Chrome subprocess on Windows. Bunwright works around it automatically: it launches Chrome with `--remote-debugging-port=<port>`, polls `http://127.0.0.1:<port>/json/version` for the `webSocketDebuggerUrl`, and connects `Bun.WebView` to that endpoint.
+
+- Chrome executable resolution: `BUN_CHROME_PATH` → `config.backend.path` → common install locations.
+- In workaround mode, `backend.path` and `backend.argv` are ignored.
+- The spawned Chrome is killed on `browser.close()` and on process exit.
+
+## Examples
+
+Runnable demos live in [`examples/`](./examples):
+
+| File                | Shows                                                       |
+| ------------------- | ----------------------------------------------------------- |
+| `screenshot.ts`     | Minimal navigate + screenshot                               |
+| `login.ts`          | `label:`/`role:` selectors, glob `waitForURL`, parallel reads |
+| `form-fill.ts`      | CSS selectors, `Locator.count()`                            |
+| `error-handling.ts` | Fail-fast chains, `TimeoutError` handling, soft `exists()`  |
+| `evaluate.ts`       | `evaluate()` and raw CDP calls                              |
+| `multi-context.ts`  | Two contexts driven in parallel                             |
 
 ```bash
-bunwright --file instructions.json
+bun run src/bunwright.ts examples/login.ts
 ```
 
-Or with Bun's package runner:
+## Development
 
 ```bash
-bunx bunwright --file instructions.json
+bun install          # dependencies
+bun test             # unit + integration tests (bun:test)
+bun run typecheck    # tsc, also covers examples/
+bun run lint         # oxlint
+bun run format       # oxfmt
+bun run build        # bundle dist/ + emit type declarations
+bun run docs         # regenerate docs/api-reference.md
 ```
 
-## CLI Usage
+To use a local checkout from another Bun project:
 
 ```bash
-bunx bunwright --file instructions.json
-bunx bunwright --instructions '{"steps":[{"action":"navigate","url":"https://example.com"}]}'
+bun link             # in this repository
+bun link bunwright   # in the consuming project
 ```
 
-Pass exactly one of `--file` or `--instructions`.
+## License
 
-This project was created using `bun init` in bun v1.3.12. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+[LGPL-2.1](./LICENSE.md) © Jonas Perusquia Morales

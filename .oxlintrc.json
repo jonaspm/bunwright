@@ -1,0 +1,36 @@
+{
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-explicit-any": "warn",
+    "no-magic-numbers": "off",
+    "no-await-in-loop": "off",
+    "sort-imports": "off",
+    "sort-keys": "off",
+    "prefer-destructuring": "off",
+    "prefer-exponentiation-operator": "off",
+    "no-ternary": "off",
+    "no-nested-ternary": "off",
+    "max-statements": "off",
+    "no-null": "off",
+    "no-shadow": "off",
+    "func-style": "off",
+    "id-length": "off",
+    "curly": "off",
+    "no-continue": "off",
+    "prefer-string-raw": "off",
+    "text-encoding-identifier-case": "off",
+    "numeric-separators-style": "off",
+    "parameter-properties": "off",
+    "consistent-type-imports": "off",
+    "consistent-generic-constructors": "off",
+    "array-type": "off",
+    "capitalized-comments": "off",
+    "init-declarations": "off",
+    "prefer-named-capture-group": "off"
+  },
+  "ignorePatterns": ["dist/**", "node_modules/**", ".agents/**"]
+}

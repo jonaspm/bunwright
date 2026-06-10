@@ -1,4 +1,4 @@
-import { build, type BunPlugin } from "bun";
+import { build } from "bun";
 import { readFileSync, rmSync, existsSync } from "fs";
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
@@ -9,7 +9,7 @@ if (existsSync(distDir)) {
 }
 
 const result = await build({
-  entrypoints: ["./src/bunwright.ts"],
+  entrypoints: ["./src/bunwright.ts", "./src/dsl/index.ts"],
   outdir: distDir,
   target: "bun",
   format: "esm",

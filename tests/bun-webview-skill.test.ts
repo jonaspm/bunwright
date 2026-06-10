@@ -25,12 +25,14 @@ describe("Bun WebView skill accuracy", () => {
 
     expect(skillText).not.toContain("const webview = new WebView({");
     expect(skillText).not.toContain("html: `");
-    expect(skillText).not.toContain("title: \"Inline HTML\"");
+    expect(skillText).not.toContain('title: "Inline HTML"');
     expect(skillText).not.toContain("webview.run()");
   });
 
   test("documents console capture with supported types", () => {
-    expect(bunTypesText).toContain("type ConsoleCapture = typeof console | ((type: string, ...args: unknown[]) => void);");
+    expect(bunTypesText).toContain(
+      "type ConsoleCapture = typeof console | ((type: string, ...args: unknown[]) => void);",
+    );
 
     expect(skillText).toContain("globalThis.console");
     expect(skillText).toContain("(type, ...args) => void");
@@ -43,6 +45,8 @@ describe("Bun WebView skill accuracy", () => {
 
     expect(skillText).toContain("expression");
     expect(skillText).toContain("IIFE");
-    expect(skillText).not.toMatch(/await view\.evaluate\(\s*`\s*document\.body\.style\.background/m);
+    expect(skillText).not.toMatch(
+      /await view\.evaluate\(\s*`\s*document\.body\.style\.background/m,
+    );
   });
 });

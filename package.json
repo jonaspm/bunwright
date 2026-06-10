@@ -1,28 +1,32 @@
 {
   "name": "bunwright",
-  "version": "0.2.0",
-  "description": "JSON-driven Bun.WebView automation CLI",
-  "module": "./dist/bunwright.mjs",
-  "types": "./dist/types.d.ts",
+  "version": "0.3.0",
+  "description": "TypeScript-first Bun.WebView automation DSL",
   "bin": {
     "bunwright": "dist/bunwright.mjs"
   },
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/types.d.ts",
   "scripts": {
     "build": "bun run build:dist && bun run build:types",
     "build:dist": "bun build.ts",
-    "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/types.ts",
+    "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/dsl/index.ts",
+    "docs": "bun run build && bun run scripts/generate-api-docs.ts",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
-  "dependencies": {
-    "dotenv": "^16.6.1"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@drizzle-team/brocli": "^0.10.2",
-    "@types/bun": "latest"
+    "@types/bun": "1.3.14",
+    "oxfmt": "^0.53.0",
+    "oxlint": "^1.68.0"
   },
   "peerDependencies": {
-    "typescript": "^6.0.2"
-  },
-  "type": "module"
+    "typescript": "^5.0.0"
+  }
 }
