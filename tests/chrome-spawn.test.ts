@@ -36,6 +36,8 @@ describe("findFreePort", () => {
 
 describe("resolveChromePath", () => {
   const originalEnv = process.env.BUN_CHROME_PATH;
+  // A file guaranteed to exist on every platform: the running bun binary.
+  const existingFile = process.execPath;
 
   afterEach(() => {
     if (originalEnv === undefined) {
@@ -52,17 +54,16 @@ describe("resolveChromePath", () => {
   });
 
   test("honors BUN_CHROME_PATH env var over config path", () => {
-    const envPath = "C:\\Windows\\System32\\cmd.exe";
     const configPath = "Z:\\missing.exe";
-    process.env.BUN_CHROME_PATH = envPath;
+    process.env.BUN_CHROME_PATH = existingFile;
     const result = resolveChromePath(configPath);
-    expect(result).toBe(envPath);
+    expect(result).toBe(existingFile);
   });
 
   test("falls back to config path when env unset", () => {
     delete process.env.BUN_CHROME_PATH;
-    const result = resolveChromePath("C:\\Windows\\System32\\cmd.exe");
-    expect(result).toBe("C:\\Windows\\System32\\cmd.exe");
+    const result = resolveChromePath(existingFile);
+    expect(result).toBe(existingFile);
   });
 
   test("returns first existing candidate when env unset and config missing", () => {
