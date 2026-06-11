@@ -22,9 +22,11 @@ type AnyFn = (...args: never[]) => unknown;
  * - Anything else is terminal: awaiting yields the value, and only
  *   `all()` remains available.
  */
-type ChainResult<T, R, Acc extends unknown[]> = [R] extends [void] ? PendingChain<T, Acc>
-  : R extends ChainTarget ? PendingChain<R, Acc>
-  : TerminalChain<R, Acc>;
+type ChainResult<T, R, Acc extends unknown[]> = [R] extends [void]
+  ? PendingChain<T, Acc>
+  : R extends ChainTarget
+    ? PendingChain<R, Acc>
+    : TerminalChain<R, Acc>;
 
 export type TerminalChain<R, Acc extends unknown[] = unknown[]> = PromiseLike<R> & {
   /** Resolves with every step's result, in call order. */
@@ -37,21 +39,21 @@ export type TerminalChain<R, Acc extends unknown[] = unknown[]> = PromiseLike<R>
  */
 type EvaluateOverride<T, Acc extends unknown[]> = T extends {
   evaluate: (...args: any[]) => any;
-} ? {
-    evaluate<R>(fn: (...args: any[]) => R): TerminalChain<Awaited<R>, [...Acc, Awaited<R>]>;
-  }
+}
+  ? {
+      evaluate<R>(fn: (...args: any[]) => R): TerminalChain<Awaited<R>, [...Acc, Awaited<R>]>;
+    }
   : unknown;
 
-type ChainMethods<T, Acc extends unknown[]> =
-  & {
-    [K in Exclude<keyof T, "evaluate">]: T[K] extends (...args: infer A) => Promise<infer R>
-      ? (...args: A) => ChainResult<T, R, [...Acc, R]>
-      : T[K] extends (...args: infer A) => infer R
-        ? R extends ChainTarget ? (...args: A) => Chain<R>
+type ChainMethods<T, Acc extends unknown[]> = {
+  [K in Exclude<keyof T, "evaluate">]: T[K] extends (...args: infer A) => Promise<infer R>
+    ? (...args: A) => ChainResult<T, R, [...Acc, R]>
+    : T[K] extends (...args: infer A) => infer R
+      ? R extends ChainTarget
+        ? (...args: A) => Chain<R>
         : T[K]
       : T[K];
-  }
-  & EvaluateOverride<T, Acc>;
+} & EvaluateOverride<T, Acc>;
 
 /**
  * A resting chain: the wrapped object itself. Not thenable — `await` on it
@@ -65,10 +67,8 @@ export type Chain<T> = ChainMethods<T, []>;
  * resting chain of the final target (or rejects with the first step error —
  * steps queued after a failed step never execute).
  */
-export type PendingChain<T, Acc extends unknown[] = unknown[]> =
-  & ChainMethods<T, Acc>
-  & PromiseLike<Chain<T>>
-  & {
+export type PendingChain<T, Acc extends unknown[] = unknown[]> = ChainMethods<T, Acc> &
+  PromiseLike<Chain<T>> & {
     /** Resolves with every step's result, in call order. */
     all(): Promise<Acc>;
   };

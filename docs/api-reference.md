@@ -246,7 +246,7 @@ _Declared in `dist/selectors.d.ts`_
 _Declared in `dist/selectors.d.ts`_
 
 ```typescript
-"load" | "domcontentloaded" | "networkidle"
+"load" | "domcontentloaded" | "networkidle";
 ```
 
 ### `Selector`
@@ -254,7 +254,7 @@ _Declared in `dist/selectors.d.ts`_
 _Declared in `dist/selectors.d.ts`_
 
 ```typescript
-`role:${string}` | `label:${string}` | `text:${string}` | `css:${string}` | `xpath:${string}`
+`role:${string}` | `label:${string}` | `text:${string}` | `css:${string}` | `xpath:${string}`;
 ```
 
 ## Functions
@@ -274,4 +274,3 @@ _Declared in `dist/config.d.ts`_
 ```typescript
 defineConfig(config: BrowserConfig): BrowserConfig
 ```
-

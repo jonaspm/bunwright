@@ -56,13 +56,10 @@ class BunwrightBrowser {
 
       if (
         process.platform === "win32" &&
-        (backend === "chrome" ||
-          (typeof backend === "object" && backend?.type === "chrome"))
+        (backend === "chrome" || (typeof backend === "object" && backend?.type === "chrome"))
       ) {
         const configPath =
-          typeof backend === "object" && backend?.type === "chrome"
-            ? backend.path
-            : undefined;
+          typeof backend === "object" && backend?.type === "chrome" ? backend.path : undefined;
         const port = await findFreePort();
         const handle = await spawnChrome({
           path: configPath,
@@ -78,9 +75,7 @@ class BunwrightBrowser {
           url: handle.webSocketDebuggerUrl,
         } as unknown as typeof backend;
         if (process.env.BUNWRIGHT_DEBUG) {
-          console.log(
-            `[bunwright] Spawned Chrome on port ${port} (Windows workaround)`,
-          );
+          console.log(`[bunwright] Spawned Chrome on port ${port} (Windows workaround)`);
         }
       }
 

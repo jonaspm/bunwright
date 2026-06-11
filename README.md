@@ -123,7 +123,7 @@ try {
   await page
     .navigate("https://example.com")
     .click("role:button[name='Missing']") // throws TimeoutError
-    .waitForURL("**/success");            // never runs
+    .waitForURL("**/success"); // never runs
 } catch (error) {
   if (error instanceof TimeoutError) {
     // handle, fall back, continue
@@ -156,21 +156,21 @@ Full reference: [`docs/api-reference.md`](./docs/api-reference.md) (generated fr
 
 Singleton entry point.
 
-| Method                | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| `newPage(options?)`   | Open a page (creates the WebView lazily)             |
-| `newContext(options?)`| Create a context (viewport, extra headers, cookies)  |
-| `close()`             | Close all contexts, the WebView, and spawned Chrome  |
+| Method                 | Description                                         |
+| ---------------------- | --------------------------------------------------- |
+| `newPage(options?)`    | Open a page (creates the WebView lazily)            |
+| `newContext(options?)` | Create a context (viewport, extra headers, cookies) |
+| `close()`              | Close all contexts, the WebView, and spawned Chrome |
 
 ### `Page`
 
-| Group       | Methods                                                                       |
-| ----------- | ----------------------------------------------------------------------------- |
-| Navigation  | `navigate`, `back`, `forward`, `reload`, `waitForLoadState`, `waitForURL`     |
-| Interaction | `click`, `dblClick`, `type`, `press`, `scroll`, `scrollTo`, `resize`          |
-| Inspection  | `evaluate`, `locator`, `$`, `$$`, `exists`, `expect`, `check`, `screenshot`   |
-| Waiting     | `waitForSelector`, `waitFor`, `waitForTimeout`                                |
-| Low-level   | `cdp(method, params)` — raw Chrome DevTools Protocol calls                    |
+| Group       | Methods                                                                     |
+| ----------- | --------------------------------------------------------------------------- |
+| Navigation  | `navigate`, `back`, `forward`, `reload`, `waitForLoadState`, `waitForURL`   |
+| Interaction | `click`, `dblClick`, `type`, `press`, `scroll`, `scrollTo`, `resize`        |
+| Inspection  | `evaluate`, `locator`, `$`, `$$`, `exists`, `expect`, `check`, `screenshot` |
+| Waiting     | `waitForSelector`, `waitFor`, `waitForTimeout`                              |
+| Low-level   | `cdp(method, params)` — raw Chrome DevTools Protocol calls                  |
 
 `waitForURL` accepts a URL glob (`**` spans `/`, `*` stays within a segment, `?` is one character; anchored to the full URL) or a `RegExp`.
 
@@ -178,12 +178,12 @@ Singleton entry point.
 
 Created with `page.locator(selector)`. Lazy — resolves on each action.
 
-| Group      | Methods                                                                     |
-| ---------- | ---------------------------------------------------------------------------- |
-| Actions    | `click`, `dblClick`, `type`, `fill`, `press`, `screenshot`                  |
-| Reading    | `innerText`, `innerHTML`, `getAttribute`, `evaluate`, `count`               |
-| State      | `isVisible`, `isEnabled`, `isChecked`                                       |
-| Narrowing  | `filter`, `first`, `last`, `nth`, `toElement`                               |
+| Group     | Methods                                                       |
+| --------- | ------------------------------------------------------------- |
+| Actions   | `click`, `dblClick`, `type`, `fill`, `press`, `screenshot`    |
+| Reading   | `innerText`, `innerHTML`, `getAttribute`, `evaluate`, `count` |
+| State     | `isVisible`, `isEnabled`, `isChecked`                         |
+| Narrowing | `filter`, `first`, `last`, `nth`, `toElement`                 |
 
 ### Errors
 
@@ -198,14 +198,14 @@ Via `bunwright.config.ts` in the project root, or programmatically with `defineC
 import { defineConfig } from "bunwright";
 
 export default defineConfig({
-  backend: "chrome",      // "webkit" | "chrome" | { type: "chrome", path, argv }
-  width: 1440,            // default 1280
-  height: 900,            // default 800
-  url: "",                // initial URL when the WebView opens
-  console: true,          // forward page console logs
+  backend: "chrome", // "webkit" | "chrome" | { type: "chrome", path, argv }
+  width: 1440, // default 1280
+  height: 900, // default 800
+  url: "", // initial URL when the WebView opens
+  console: true, // forward page console logs
   dataStore: "ephemeral", // or a directory path for persistent state
-  retryTimeout: 10000,    // auto-wait/retry budget per action, ms
-  headless: true,         // default: true on Windows, false elsewhere
+  retryTimeout: 10000, // auto-wait/retry budget per action, ms
+  headless: true, // default: true on Windows, false elsewhere
 });
 ```
 
@@ -215,10 +215,10 @@ Resolution order: built-in defaults ← config file ← `defineConfig()` call.
 
 The CLI loads `.env.local` and `.env` from the working directory before running the script. Existing environment variables are never overridden.
 
-| Variable          | Effect                                                        |
-| ----------------- | ------------------------------------------------------------- |
-| `BUN_CHROME_PATH` | Path to the Chrome executable (checked first on Windows)      |
-| `BUNWRIGHT_DEBUG` | `1` logs the spawned Chrome debug port (Windows workaround)   |
+| Variable          | Effect                                                      |
+| ----------------- | ----------------------------------------------------------- |
+| `BUN_CHROME_PATH` | Path to the Chrome executable (checked first on Windows)    |
+| `BUNWRIGHT_DEBUG` | `1` logs the spawned Chrome debug port (Windows workaround) |
 
 ## Windows
 
@@ -232,14 +232,14 @@ The CLI loads `.env.local` and `.env` from the working directory before running 
 
 Runnable demos live in [`examples/`](./examples):
 
-| File                | Shows                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| `screenshot.ts`     | Minimal navigate + screenshot                               |
+| File                | Shows                                                         |
+| ------------------- | ------------------------------------------------------------- |
+| `screenshot.ts`     | Minimal navigate + screenshot                                 |
 | `login.ts`          | `label:`/`role:` selectors, glob `waitForURL`, parallel reads |
-| `form-fill.ts`      | CSS selectors, `Locator.count()`                            |
-| `error-handling.ts` | Fail-fast chains, `TimeoutError` handling, soft `exists()`  |
-| `evaluate.ts`       | `evaluate()` and raw CDP calls                              |
-| `multi-context.ts`  | Two contexts driven in parallel                             |
+| `form-fill.ts`      | CSS selectors, `Locator.count()`                              |
+| `error-handling.ts` | Fail-fast chains, `TimeoutError` handling, soft `exists()`    |
+| `evaluate.ts`       | `evaluate()` and raw CDP calls                                |
+| `multi-context.ts`  | Two contexts driven in parallel                               |
 
 ```bash
 bun run src/bunwright.ts examples/login.ts
