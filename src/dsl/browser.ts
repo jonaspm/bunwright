@@ -45,57 +45,66 @@ class BunwrightBrowser {
   #config: BrowserConfig = {};
   #resolvedConfig: Awaited<ReturnType<typeof resolveConfig>> | null = null;
   #view: WebView | null = null;
+  // Memoize the in-flight creation promise, not just the resolved view, so
+  // concurrent callers (e.g. `Promise.all([newContext(), newContext()])`) share
+  // a single WebView. Without this, both pass `!this.#view` and each construct
+  // their own view, with the last writer winning — leaving earlier callers
+  // holding a view that no longer matches `this.#view`.
+  #viewPromise: Promise<WebView> | null = null;
   #chromeHandle: ChromeSpawnHandle | null = null;
   #contexts: Set<BrowserContext> = new Set();
 
   async #ensureView(): Promise<WebView> {
-    if (!this.#view) {
-      this.#resolvedConfig = await resolveConfig();
-      let backend = this.#resolvedConfig.backend;
-      let dataStore: Bun.WebView.ConstructorOptions["dataStore"];
-      if (this.#resolvedConfig.dataStore === "ephemeral") {
-        dataStore = "ephemeral";
-      } else if (this.#resolvedConfig.dataStore) {
-        dataStore = { directory: this.#resolvedConfig.dataStore };
-      }
+    if (!this.#viewPromise) {
+      this.#viewPromise = (async () => {
+        this.#resolvedConfig = await resolveConfig();
+        let backend = this.#resolvedConfig.backend;
+        let dataStore: Bun.WebView.ConstructorOptions["dataStore"];
+        if (this.#resolvedConfig.dataStore === "ephemeral") {
+          dataStore = "ephemeral";
+        } else if (this.#resolvedConfig.dataStore) {
+          dataStore = { directory: this.#resolvedConfig.dataStore };
+        }
 
-      if (
-        process.platform === "win32" &&
-        (backend === "chrome" || (typeof backend === "object" && backend?.type === "chrome"))
-      ) {
-        const configPath =
-          typeof backend === "object" && backend?.type === "chrome" ? backend.path : undefined;
-        const port = await findFreePort();
-        const handle = await spawnChrome({
-          path: configPath,
-          port,
-          headless: this.#resolvedConfig.headless,
+        if (
+          process.platform === "win32" &&
+          (backend === "chrome" || (typeof backend === "object" && backend?.type === "chrome"))
+        ) {
+          const configPath =
+            typeof backend === "object" && backend?.type === "chrome" ? backend.path : undefined;
+          const port = await findFreePort();
+          const handle = await spawnChrome({
+            path: configPath,
+            port,
+            headless: this.#resolvedConfig.headless,
+            width: this.#resolvedConfig.width,
+            height: this.#resolvedConfig.height,
+            dataStore,
+          });
+          this.#chromeHandle = handle;
+          backend = {
+            type: "chrome",
+            url: handle.webSocketDebuggerUrl,
+          } as unknown as typeof backend;
+          if (process.env.BUNWRIGHT_DEBUG) {
+            console.log(`[bunwright] Spawned Chrome on port ${port} (Windows workaround)`);
+          }
+        }
+
+        const opts: Bun.WebView.ConstructorOptions = {
+          backend,
           width: this.#resolvedConfig.width,
           height: this.#resolvedConfig.height,
+          url: this.#resolvedConfig.url,
+          console: this.#resolvedConfig.console ? globalThis.console : undefined,
           dataStore,
-        });
-        this.#chromeHandle = handle;
-        backend = {
-          type: "chrome",
-          url: handle.webSocketDebuggerUrl,
-        } as unknown as typeof backend;
-        if (process.env.BUNWRIGHT_DEBUG) {
-          console.log(`[bunwright] Spawned Chrome on port ${port} (Windows workaround)`);
-        }
-      }
-
-      const opts: Bun.WebView.ConstructorOptions = {
-        backend,
-        width: this.#resolvedConfig.width,
-        height: this.#resolvedConfig.height,
-        url: this.#resolvedConfig.url,
-        console: this.#resolvedConfig.console ? globalThis.console : undefined,
-        dataStore,
-      };
-      this.#view = new WebView(opts);
-      serializeEvaluate(this.#view);
+        };
+        this.#view = new WebView(opts);
+        serializeEvaluate(this.#view);
+        return this.#view;
+      })();
     }
-    return this.#view;
+    return this.#viewPromise;
   }
 
   config(opts?: BrowserConfig): void {
@@ -145,8 +154,9 @@ class BunwrightBrowser {
     this.#contexts.clear();
     if (this.#view) {
       this.#view.close();
-      this.#view = null;
     }
+    this.#view = null;
+    this.#viewPromise = null;
     if (this.#chromeHandle) {
       this.#chromeHandle.kill();
       this.#chromeHandle = null;
