@@ -14,7 +14,12 @@ import { spawnChrome, findFreePort } from "./chrome-spawn.js";
 export interface ContextOptions {
   viewport?: { width: number; height: number };
   extraHeaders?: Record<string, string>;
-  cookies?: Array<{ name: string; value: string; domain?: string; path?: string }>;
+  cookies?: Array<{
+    name: string;
+    value: string;
+    domain?: string;
+    path?: string;
+  }>;
 }
 
 /**
