@@ -1,5 +1,11 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { browser, TimeoutError } from "../src/dsl";
+
+// Safety net: a failed assertion skips the in-test browser.close(), which
+// would leave a pending navigation that poisons every following test.
+afterEach(async () => {
+  await browser.close();
+});
 
 const HAS_CHROME = await checkChrome();
 
@@ -89,28 +95,32 @@ describe("Integration: TimeoutError", () => {
     const page = await browser.newPage();
     await page.navigate("https://example.com");
 
-    await expect(page.click("css:.does-not-exist", { timeout: 1000 })).rejects.toThrow(
-      TimeoutError,
-    );
+    // page.click() returns a chain thenable, not a Promise instance, and
+    // expect(...).rejects requires the latter — adopt it via Promise.resolve.
+    await expect(
+      Promise.resolve(page.click("css:.does-not-exist", { timeout: 1000 })),
+    ).rejects.toThrow(TimeoutError);
 
     await browser.close();
   });
 });
 
 describe("Integration: Multi-Context", () => {
-  testIf("multiple contexts can have independent pages", async () => {
+  testIf("pages from multiple contexts share the single webview", async () => {
     const [ctx1, ctx2] = await Promise.all([browser.newContext(), browser.newContext()]);
 
     const page1 = await ctx1.newPage();
     const page2 = await ctx2.newPage();
 
-    await Promise.all([
-      page1.navigate("https://example.com"),
-      page2.navigate("https://www.iana.org"),
-    ]);
-
+    // Contexts are not isolated browser instances: every page wraps the one
+    // shared WebView, so navigation must be sequential and the URL is shared.
+    await page1.navigate("https://example.com");
     expect(page1.webview.url).toContain("example.com");
+
+    await page2.navigate("https://www.iana.org");
     expect(page2.webview.url).toContain("iana.org");
+
+    expect(page1.webview).toBe(page2.webview);
 
     await browser.close();
   });
