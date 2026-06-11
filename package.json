@@ -33,7 +33,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "lint-staged": "lint-staged",
-    "prepare": "node -e \"try{require('simple-git-hooks')()}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}\""
+    "prepare": "node -e \"try{const m=require('simple-git-hooks');if(!m.skipInstall())m.setHooksFromConfig(process.cwd(),process.argv)}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}\""
   },
   "dependencies": {},
   "devDependencies": {
