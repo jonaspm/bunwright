@@ -32,7 +32,15 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          registry-url: https://registry.npmjs.org
+          registries: |
+            https://registry.npmjs.org/
+
+      - name: Install Chrome
+        run: |
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
 
       - name: Verify tag matches package version
         run: |
@@ -53,6 +61,8 @@ jobs:
           bun run lint
           bun run format:check
           bun test
+        env:
+          BUN_CHROME_PATH: /usr/bin/google-chrome
 
       - name: Build
         run: bun run build
