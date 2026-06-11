@@ -31,9 +31,16 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+
+      # npm >= 11.5.1 is required for OIDC trusted publishing; bun publish
+      # does not support it (oven-sh/bun#22423), so the publish step uses npm.
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          registries: |
-            https://registry.npmjs.org/
+          node-version: 24
+
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
 
       - name: Install Chrome
         run: |
@@ -85,4 +92,4 @@ jobs:
 
       - name: Publish to npm
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
-        run: bun publish --provenance --non-interactive
+        run: npm publish --provenance
