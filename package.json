@@ -1,7 +1,7 @@
 {
   "name": "bunwright",
   "version": "0.3.0",
-  "description": "TypeScript-first Bun.WebView automation DSL",
+  "description": "The lightweight browser automation library for Bun",
   "bin": {
     "bunwright": "dist/bunwright.mjs"
   },
