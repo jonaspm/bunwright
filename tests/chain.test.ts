@@ -140,7 +140,7 @@ describe("pending chain", () => {
 
   test("chaining after a terminal value step rejects", async () => {
     const { w } = setup();
-    const chain = w.size() as any;
+    const chain = w.size() as unknown as { tap(label: string): unknown };
     await expect(Promise.resolve(chain.tap("late"))).rejects.toBeInstanceOf(BunwrightError);
   });
 });

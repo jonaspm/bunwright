@@ -193,7 +193,7 @@ export class Page {
   #closed = false;
   #resolver: SelectorResolver;
 
-  constructor(view: WebView, context: BrowserContext) {
+  constructor(view: WebView, _context: BrowserContext) {
     this.webview = view;
     this.#resolver = new SelectorResolver(view);
     this.retryTimeout = 10000;

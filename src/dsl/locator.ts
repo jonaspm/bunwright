@@ -58,7 +58,7 @@ export class ElementHandle {
     }
   }
 
-  async evaluate<T>(fn: (el: any) => T): Promise<T> {
+  async evaluate<T>(fn: (el: Element) => T): Promise<T> {
     const script = `(() => { const el = document.querySelector('${this.cssSelector}'); if (!el) return null; return (${fn.toString()})(el); })()`;
     return this.webview.evaluate(script) as Promise<T>;
   }
@@ -237,7 +237,7 @@ export class Locator {
     }
   }
 
-  async evaluate<T>(fn: (el: any) => T): Promise<T> {
+  async evaluate<T>(fn: (el: Element) => T): Promise<T> {
     const css = await this.resolveSelector();
     const script = `(() => { const el = document.querySelector('${css}'); if (!el) return null; return (${fn.toString()})(el); })()`;
     return this.webview.evaluate(script) as Promise<T>;

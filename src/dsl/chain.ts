@@ -38,10 +38,10 @@ export type TerminalChain<R, Acc extends unknown[] = unknown[]> = PromiseLike<R>
  * explicitly to keep its return type inference.
  */
 type EvaluateOverride<T, Acc extends unknown[]> = T extends {
-  evaluate: (...args: any[]) => any;
+  evaluate: (fn: (...args: infer P) => unknown) => unknown;
 }
   ? {
-      evaluate<R>(fn: (...args: any[]) => R): TerminalChain<Awaited<R>, [...Acc, Awaited<R>]>;
+      evaluate<R>(fn: (...args: P) => R): TerminalChain<Awaited<R>, [...Acc, Awaited<R>]>;
     }
   : unknown;
 
