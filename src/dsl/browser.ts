@@ -5,6 +5,7 @@ import type { Selector } from "./selectors.js";
 import { SelectorResolver, globToRegex } from "./selectors.js";
 import type { LoadState } from "./selectors.js";
 import { TimeoutError, ElementNotFoundError } from "./errors.js";
+import { inPageWaitScript } from "./wait.js";
 import type { Chain } from "./chain.js";
 import { CHAINABLE, chainable } from "./chain.js";
 import type { Locator } from "./locator.js";
@@ -444,25 +445,17 @@ export class Page {
   async waitForLoadState(state: LoadState, opts?: { timeout?: number }): Promise<this> {
     await this.#ensureNotClosed();
     const maxTime = opts?.timeout ?? this.retryTimeout;
-    const start = Date.now();
+    const condition = `
+      document.readyState === 'complete'
+      || (document.readyState === 'interactive' && '${state}' === 'domcontentloaded')
+      || document.readyState === '${state}'
+    `;
+    const reached = (await this.webview.evaluate(inPageWaitScript(condition, maxTime))) as boolean;
 
-    while (Date.now() - start < maxTime) {
-      const isLoaded = (await this.webview.evaluate(`
-        (() => {
-          if (document.readyState === 'complete') return true;
-          if (document.readyState === 'interactive' && '${state}' === 'domcontentloaded') return true;
-          return document.readyState === '${state}';
-        })()
-      `)) as boolean;
-
-      if (isLoaded) {
-        return this;
-      }
-
-      await Bun.sleep(50);
+    if (!reached) {
+      throw new TimeoutError(`Load state ${state} not reached within ${maxTime}ms`);
     }
-
-    throw new TimeoutError(`Load state ${state} not reached within ${maxTime}ms`);
+    return this;
   }
 
   async evaluate<T>(fn: () => T): Promise<T> {
@@ -528,23 +521,12 @@ export class Page {
     await this.#ensureNotClosed();
     const resolved = await this.#resolver.resolve(sel);
     const maxTime = opts?.timeout ?? this.retryTimeout;
-    const start = Date.now();
+    const condition = `document.querySelector('${resolved.css.replace(/'/g, "\\'")}') !== null`;
+    const found = (await this.webview.evaluate(inPageWaitScript(condition, maxTime))) as boolean;
 
-    while (Date.now() - start < maxTime) {
-      const found = (await this.webview.evaluate(`
-        (() => {
-          return document.querySelector('${resolved.css.replace(/'/g, "\\'")}') !== null;
-        })()
-      `)) as boolean;
-
-      if (found) {
-        return;
-      }
-
-      await Bun.sleep(50);
+    if (!found) {
+      throw new TimeoutError(`Selector ${sel} not found within ${maxTime}ms`);
     }
-
-    throw new TimeoutError(`Selector ${sel} not found within ${maxTime}ms`);
   }
 
   async waitForURL(url: string | RegExp, opts?: { timeout?: number }): Promise<void> {
@@ -576,17 +558,10 @@ export class Page {
 
   async waitFor(sel: Selector, opts?: { timeout?: number }): Promise<boolean> {
     await this.#ensureNotClosed();
+    const resolved = await this.#resolver.resolve(sel);
     const maxTime = opts?.timeout ?? this.retryTimeout;
-    const start = Date.now();
-
-    while (Date.now() - start < maxTime) {
-      if (await this.exists(sel)) {
-        return true;
-      }
-      await Bun.sleep(50);
-    }
-
-    return false;
+    const condition = `document.querySelector('${resolved.css.replace(/'/g, "\\'")}') !== null`;
+    return (await this.webview.evaluate(inPageWaitScript(condition, maxTime))) as boolean;
   }
 
   async waitForTimeout(ms: number): Promise<void> {

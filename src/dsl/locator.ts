@@ -2,6 +2,7 @@ import type { WebView } from "bun";
 import type { Selector } from "./selectors.js";
 import { SelectorResolver } from "./selectors.js";
 import { TimeoutError, ElementNotFoundError } from "./errors.js";
+import { inPageWaitScript } from "./wait.js";
 import { CHAINABLE } from "./chain.js";
 
 interface Page {
@@ -123,27 +124,19 @@ export class Locator {
   }
 
   private async waitForVisible(css: string, timeout: number): Promise<void> {
-    const deadline = Date.now() + timeout;
-    while (Date.now() < deadline) {
-      const visible = (await this.webview.evaluate(
-        `(() => { const el = document.querySelector('${css}'); if (!el) return false; const style = window.getComputedStyle(el); return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0; })()`,
-      )) as boolean;
-      if (visible) return;
-      await sleep(50);
+    const condition = `(() => { const el = document.querySelector('${css}'); if (!el) return false; const style = window.getComputedStyle(el); return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0; })()`;
+    const visible = (await this.webview.evaluate(inPageWaitScript(condition, timeout))) as boolean;
+    if (!visible) {
+      throw new TimeoutError(`Element ${css} not visible within ${timeout}ms`);
     }
-    throw new TimeoutError(`Element ${css} not visible within ${timeout}ms`);
   }
 
   private async waitForEnabled(css: string, timeout: number): Promise<void> {
-    const deadline = Date.now() + timeout;
-    while (Date.now() < deadline) {
-      const enabled = (await this.webview.evaluate(
-        `(() => { const el = document.querySelector('${css}'); if (!el) return false; return !el.hasAttribute('disabled') && !el.hasAttribute('readonly'); })()`,
-      )) as boolean;
-      if (enabled) return;
-      await sleep(50);
+    const condition = `(() => { const el = document.querySelector('${css}'); if (!el) return false; return !el.hasAttribute('disabled') && !el.hasAttribute('readonly'); })()`;
+    const enabled = (await this.webview.evaluate(inPageWaitScript(condition, timeout))) as boolean;
+    if (!enabled) {
+      throw new TimeoutError(`Element ${css} not enabled within ${timeout}ms`);
     }
-    throw new TimeoutError(`Element ${css} not enabled within ${timeout}ms`);
   }
 
   async click(opts?: { timeout?: number }): Promise<void> {
