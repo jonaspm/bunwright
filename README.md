@@ -37,7 +37,7 @@ await browser.close();
 
 ## Why Bunwright
 
-Playwright is a full end-to-end testing stack: browser downloads, test runner, fixtures, reporters. For a login script, a screenshot job, or a small scraping task inside a Bun project, that is a lot of machinery.
+Fast, zero-dependency, TypeScript-first, and small enough for AI agents to drive reliably, Bunwright is the lighter alternative to a full end-to-end testing stack like Playwright. Use it for logins, screenshots, data collection, scraping, and other browser tasks that don't need a full test framework.
 
 Bunwright targets exactly that space:
 
@@ -46,7 +46,7 @@ Bunwright targets exactly that space:
 - **Chainable** — actions queue lazily and run on `await`, with fail-fast semantics and per-step results.
 - **Scriptable** — write a TypeScript file, run it with `bunx bunwright script.ts` or plain `bun run`. `.env` loading built in.
 
-It is **not** a test framework. There are no fixtures, parallel workers, or trace viewers — for full end-to-end test suites, use Playwright.
+There are no fixtures, parallel workers, or trace viewers yet — for full end-to-end test suites, use Playwright.
 
 ## Use Cases
 
