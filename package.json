@@ -1,6 +1,6 @@
 {
   "name": "bunwright",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "The lightweight browser automation library for Bun",
   "homepage": "https://github.com/jonaspm/bunwright#readme",
   "bugs": {
