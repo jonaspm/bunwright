@@ -58,6 +58,13 @@ class BunwrightBrowser {
     if (!this.#viewPromise) {
       this.#viewPromise = (async () => {
         this.#resolvedConfig = await resolveConfig();
+        // Programmatic `browser.config(...)` takes precedence over file config
+        // and `defineConfig(...)`, since it is the most explicit, runtime-local
+        // way to configure the browser. Without this merge the instance config
+        // is silently ignored and the default backend is always used.
+        if (Object.keys(this.#config).length > 0) {
+          this.#resolvedConfig = { ...this.#resolvedConfig, ...this.#config };
+        }
         let backend = this.#resolvedConfig.backend;
         let dataStore: Bun.WebView.ConstructorOptions["dataStore"];
         if (this.#resolvedConfig.dataStore === "ephemeral") {
