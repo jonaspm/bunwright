@@ -1,6 +1,6 @@
 # Bunwright DSL API Reference
 
-_Auto-generated from `dist/*.d.ts` on 2026-06-10. Do not edit by hand._
+_Auto-generated from `dist/*.d.ts` on 2026-06-12. Do not edit by hand._
 
 Source declarations live under `src/dsl/`. Regenerate this document with `bun run docs`.
 
@@ -75,7 +75,7 @@ _Declared in `dist/locator.d.ts`_
 - `type(text: string): Promise<void>`
 - `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise<void>`
 - `screenshot(opts?: { path?: string; }): Promise<void>`
-- `evaluate<T>(fn: (el: any) => T): Promise<T>`
+- `evaluate<T>(fn: (el: Element) => T): Promise<T>`
 - `innerText(): Promise<string>`
 - `innerHTML(): Promise<string>`
 - `getAttribute(name: string): Promise<string | null>`
@@ -112,7 +112,7 @@ _Declared in `dist/locator.d.ts`_
 - `fill(text: string): Promise<void>`
 - `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise<void>`
 - `screenshot(opts?: { path?: string; }): Promise<void>`
-- `evaluate<T>(fn: (el: any) => T): Promise<T>`
+- `evaluate<T>(fn: (el: Element) => T): Promise<T>`
 - `innerText(): Promise<string>`
 - `innerHTML(): Promise<string>`
 - `getAttribute(name: string): Promise<string | null>`
@@ -132,7 +132,7 @@ _Declared in `dist/browser.d.ts`_
 
 **Constructor**
 
-- `constructor(view: WebView, context: BrowserContext)`
+- `constructor(view: WebView, _context: BrowserContext)`
 
 **Properties**
 
