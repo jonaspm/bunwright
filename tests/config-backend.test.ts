@@ -52,11 +52,19 @@ describe("browser.config() is applied at runtime", () => {
     const page = await browser.newPage();
     await page.navigate("data:text/html,", { waitForLoadState: "load" });
 
-    const [innerWidth, innerHeight] = (await page.evaluate(() => [
-      window.innerWidth,
-      window.innerHeight,
+    const [clientWidth, clientHeight] = (await page.evaluate(() => [
+      document.documentElement.clientWidth,
+      document.documentElement.clientHeight,
     ])) as [number, number];
-    expect(innerWidth).toBe(999);
-    expect(innerHeight).toBe(600);
+    // Allow a small tolerance for headed Chrome UI chrome. The default 1280x800
+    // will still fail if the instance config is silently ignored.
+    expect(
+      Math.abs(clientWidth - 999),
+      `expected viewport width ~999, got ${clientWidth}`,
+    ).toBeLessThanOrEqual(10);
+    expect(
+      Math.abs(clientHeight - 600),
+      `expected viewport height ~600, got ${clientHeight}`,
+    ).toBeLessThanOrEqual(10);
   });
 });
