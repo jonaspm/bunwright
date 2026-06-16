@@ -44,6 +44,12 @@ export function defineConfig(config: BrowserConfig): BrowserConfig {
   return config;
 }
 
+export function withoutUndefined<T>(obj: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj as Record<string, unknown>).filter(([, value]) => value !== undefined),
+  ) as Partial<T>;
+}
+
 export async function resolveConfig(): Promise<
   Required<BrowserConfig> & { dataStore: BrowserConfig["dataStore"] }
 > {
@@ -55,7 +61,7 @@ export async function resolveConfig(): Promise<
       const mod = await import(`file://${process.cwd()}/${file}`);
       const fileConfig = mod.default ?? mod;
       if (fileConfig && typeof fileConfig === "object") {
-        Object.assign(defaults, fileConfig);
+        Object.assign(defaults, withoutUndefined(fileConfig));
         break;
       }
     } catch {
@@ -64,7 +70,7 @@ export async function resolveConfig(): Promise<
   }
 
   if (userConfig) {
-    Object.assign(defaults, userConfig);
+    Object.assign(defaults, withoutUndefined(userConfig));
   }
 
   return defaults as Required<BrowserConfig> & { dataStore: BrowserConfig["dataStore"] };
