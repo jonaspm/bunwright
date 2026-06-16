@@ -2,7 +2,8 @@ import { describe, expect, test, afterEach } from "bun:test";
 import type { WebView } from "bun";
 import { SelectorResolver } from "../src/dsl/selectors";
 import type { Selector } from "../src/dsl/selectors";
-import { defineConfig, resolveConfig } from "../src/dsl/config";
+import { defineConfig, resolveConfig, withoutUndefined } from "../src/dsl/config";
+import { browser } from "../src/dsl/browser";
 import {
   BunwrightError,
   SelectorError,
@@ -103,6 +104,33 @@ describe("Config Resolution", () => {
     expect(result.width).toBe(1920);
     expect(result.height).toBe(800);
     expect(result.backend).toBe("chrome");
+  });
+
+  test("withoutUndefined strips undefined keys but keeps null/false/0/empty string", () => {
+    expect(
+      withoutUndefined({
+        a: 1,
+        b: undefined,
+        c: null,
+        d: false,
+        e: 0,
+        f: "",
+      }),
+    ).toEqual({ a: 1, c: null, d: false, e: 0, f: "" });
+  });
+
+  test("resolveConfig ignores undefined values from defineConfig", async () => {
+    defineConfig({ width: 1920, height: undefined, dataStore: undefined });
+    const result = await resolveConfig();
+    expect(result.width).toBe(1920);
+    expect(result.height).toBe(800);
+    expect(result.dataStore).toBeUndefined();
+    expect(result.backend).toBe("chrome");
+  });
+
+  test("browser.config() ignores undefined values without clobbering resolved config", () => {
+    defineConfig({ dataStore: "/tmp/x" });
+    expect(() => browser.config({ dataStore: undefined })).not.toThrow();
   });
 });
 

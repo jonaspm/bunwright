@@ -1,6 +1,6 @@
 import { WebView } from "bun";
 import type { BrowserConfig } from "./config.js";
-import { resolveConfig } from "./config.js";
+import { resolveConfig, withoutUndefined } from "./config.js";
 import type { Selector } from "./selectors.js";
 import { SelectorResolver, globToRegex } from "./selectors.js";
 import type { LoadState } from "./selectors.js";
@@ -117,7 +117,7 @@ class BunwrightBrowser {
 
   config(opts?: BrowserConfig): void {
     if (opts) {
-      this.#config = { ...this.#config, ...opts };
+      this.#config = { ...this.#config, ...withoutUndefined(opts) };
     }
   }
 
