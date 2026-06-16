@@ -1,10 +1,18 @@
+export interface InPageWaitResult {
+  ok: boolean;
+  error?: string;
+  expression?: string;
+}
+
 /**
  * Build a single in-page async wait.
  *
  * The returned script evaluates (via `webview.evaluate`, which awaits returned
- * promises) to `Promise<boolean>`: it resolves `true` as soon as `conditionExpr`
- * — a JavaScript expression evaluated in the page that yields a boolean — becomes
- * truthy, or `false` once `timeoutMs` elapses.
+ * promises) to `Promise<InPageWaitResult>`: it resolves `{ ok: true }` as soon
+ * as `conditionExpr` — a JavaScript expression evaluated in the page that
+ * yields a boolean — becomes truthy, or `{ ok: false }` once `timeoutMs`
+ * elapses. If the condition expression throws, the last error is included so
+ * callers can distinguish a genuine timeout from a malformed expression.
  *
  * This replaces host-side polling (one IPC round-trip per 50ms tick) with a
  * single round-trip. Inside the page the condition is checked immediately, on
@@ -17,14 +25,23 @@
 export function inPageWaitScript(conditionExpr: string, timeoutMs: number): string {
   return `
     (() => new Promise((resolve) => {
-      const check = () => { try { return !!(${conditionExpr}); } catch { return false; } };
-      if (check()) return resolve(true);
+      const conditionExpr = ${JSON.stringify(conditionExpr)};
+      let lastError = null;
+      const check = () => {
+        try {
+          return Boolean(new Function("return (" + conditionExpr + ")")());
+        } catch (err) {
+          lastError = String(err);
+          return false;
+        }
+      };
+      if (check()) return resolve({ ok: true });
       let settled = false;
       const finish = (value) => { if (settled) return; settled = true; cleanup(); resolve(value); };
-      const observer = new MutationObserver(() => { if (check()) finish(true); });
-      observer.observe(document, { childList: true, subtree: true, attributes: true });
-      const interval = setInterval(() => { if (check()) finish(true); }, 30);
-      const timer = setTimeout(() => finish(false), ${timeoutMs});
+      const observer = new MutationObserver(() => { if (check()) finish({ ok: true }); });
+      observer.observe(document, { childList: true, subtree: true, attributes: true, characterData: true });
+      const interval = setInterval(() => { if (check()) finish({ ok: true }); }, 50);
+      const timer = setTimeout(() => finish({ ok: false, error: lastError, expression: conditionExpr }), ${timeoutMs});
       function cleanup() { observer.disconnect(); clearInterval(interval); clearTimeout(timer); }
     }))()
   `;
