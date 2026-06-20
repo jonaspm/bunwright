@@ -29,6 +29,10 @@ export function inPageWaitScript(conditionExpr: string, timeoutMs: number): stri
       let lastError = null;
       const check = () => {
         try {
+          // new Function() is eval-equivalent: like the original inline
+          // interpolation it throws under a strict script-src CSP. Accepted
+          // tradeoff — there is no CSP-safe way to run an arbitrary
+          // caller-supplied condition expression in-page.
           return Boolean(new Function("return (" + conditionExpr + ")")());
         } catch (err) {
           lastError = String(err);

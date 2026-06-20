@@ -86,6 +86,9 @@ describe("in-page event-driven waits", () => {
       const page = await browser.newPage();
       await page.navigate(`http://localhost:${server.port}/slow`, { waitForLoadState: "load" });
       expect(page.webview.url).toContain("/slow");
+      // `navigate({ waitForLoadState: "load" })` must have observed the actual
+      // load event, not just the URL changing — assert the readyState it waits on.
+      expect(await page.evaluate(() => document.readyState)).toBe("complete");
     });
 
     test("rejects with TimeoutError when the page never reaches load", async () => {
