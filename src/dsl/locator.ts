@@ -2,7 +2,7 @@ import type { WebView } from "bun";
 import type { Selector } from "./selectors.js";
 import { SelectorResolver } from "./selectors.js";
 import { TimeoutError, ElementNotFoundError } from "./errors.js";
-import { inPageWaitScript } from "./wait.js";
+import { inPageWaitScript, type InPageWaitResult } from "./wait.js";
 import { CHAINABLE } from "./chain.js";
 
 interface Page {
@@ -123,27 +123,47 @@ export class Locator {
     return css;
   }
 
-  private async waitForVisible(css: string, timeout: number): Promise<void> {
+  private async waitForVisibleInternal(css: string, timeout: number): Promise<void> {
     const condition = `(() => { const el = document.querySelector('${css}'); if (!el) return false; const style = window.getComputedStyle(el); return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetWidth > 0 && el.offsetHeight > 0; })()`;
-    const visible = (await this.webview.evaluate(inPageWaitScript(condition, timeout))) as boolean;
-    if (!visible) {
-      throw new TimeoutError(`Element ${css} not visible within ${timeout}ms`);
+    const result = (await this.webview.evaluate(
+      inPageWaitScript(condition, timeout),
+    )) as InPageWaitResult;
+    if (!result.ok) {
+      const reason = result.error ? ` (last check error: ${result.error})` : "";
+      const expr = result.expression ? `; expression: ${result.expression}` : "";
+      throw new TimeoutError(`Element ${css} not visible within ${timeout}ms${reason}${expr}`);
     }
   }
 
-  private async waitForEnabled(css: string, timeout: number): Promise<void> {
+  private async waitForEnabledInternal(css: string, timeout: number): Promise<void> {
     const condition = `(() => { const el = document.querySelector('${css}'); if (!el) return false; return !el.hasAttribute('disabled') && !el.hasAttribute('readonly'); })()`;
-    const enabled = (await this.webview.evaluate(inPageWaitScript(condition, timeout))) as boolean;
-    if (!enabled) {
-      throw new TimeoutError(`Element ${css} not enabled within ${timeout}ms`);
+    const result = (await this.webview.evaluate(
+      inPageWaitScript(condition, timeout),
+    )) as InPageWaitResult;
+    if (!result.ok) {
+      const reason = result.error ? ` (last check error: ${result.error})` : "";
+      const expr = result.expression ? `; expression: ${result.expression}` : "";
+      throw new TimeoutError(`Element ${css} not enabled within ${timeout}ms${reason}${expr}`);
     }
+  }
+
+  async waitForVisible(opts?: { timeout?: number }): Promise<this> {
+    const css = await this.resolveSelector();
+    await this.waitForVisibleInternal(css, opts?.timeout ?? this.retryTimeout);
+    return this;
+  }
+
+  async waitForEnabled(opts?: { timeout?: number }): Promise<this> {
+    const css = await this.resolveSelector();
+    await this.waitForEnabledInternal(css, opts?.timeout ?? this.retryTimeout);
+    return this;
   }
 
   async click(opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? this.retryTimeout;
     const css = await this.resolveSelector();
-    await this.waitForVisible(css, timeout);
-    await this.waitForEnabled(css, timeout);
+    await this.waitForVisibleInternal(css, timeout);
+    await this.waitForEnabledInternal(css, timeout);
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -163,8 +183,8 @@ export class Locator {
   async dblClick(opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? this.retryTimeout;
     const css = await this.resolveSelector();
-    await this.waitForVisible(css, timeout);
-    await this.waitForEnabled(css, timeout);
+    await this.waitForVisibleInternal(css, timeout);
+    await this.waitForEnabledInternal(css, timeout);
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -186,8 +206,8 @@ export class Locator {
   async type(text: string, opts?: { timeout?: number }): Promise<void> {
     const timeout = opts?.timeout ?? this.retryTimeout;
     const css = await this.resolveSelector();
-    await this.waitForVisible(css, timeout);
-    await this.waitForEnabled(css, timeout);
+    await this.waitForVisibleInternal(css, timeout);
+    await this.waitForEnabledInternal(css, timeout);
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -207,8 +227,8 @@ export class Locator {
 
   async fill(text: string): Promise<void> {
     const css = await this.resolveSelector();
-    await this.waitForVisible(css, this.retryTimeout);
-    await this.waitForEnabled(css, this.retryTimeout);
+    await this.waitForVisibleInternal(css, this.retryTimeout);
+    await this.waitForEnabledInternal(css, this.retryTimeout);
 
     await this.webview.evaluate(
       `(() => { const el = document.querySelector('${css}'); if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) { el.value = ''; } })()`,
@@ -219,7 +239,7 @@ export class Locator {
 
   async press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise<void> {
     const css = await this.resolveSelector();
-    await this.waitForVisible(css, this.retryTimeout);
+    await this.waitForVisibleInternal(css, this.retryTimeout);
     await this.webview.press(key, modifiers ? { modifiers } : undefined);
   }
 
@@ -298,7 +318,7 @@ export class Locator {
 
   async toElement(): Promise<ElementHandle> {
     const css = await this.resolveSelector();
-    await this.waitForVisible(css, this.retryTimeout);
+    await this.waitForVisibleInternal(css, this.retryTimeout);
     return new ElementHandle(css, this.page);
   }
 }

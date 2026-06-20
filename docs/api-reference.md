@@ -1,6 +1,6 @@
 # Bunwright DSL API Reference
 
-_Auto-generated from `dist/*.d.ts` on 2026-06-12. Do not edit by hand._
+_Auto-generated from `dist/*.d.ts` on 2026-06-16. Do not edit by hand._
 
 Source declarations live under `src/dsl/`. Regenerate this document with `bun run docs`.
 
@@ -106,6 +106,8 @@ _Declared in `dist/locator.d.ts`_
 
 - `getPage(): Page`
 - `resolveSelector(): Promise<string>`
+- `waitForVisible(opts?: { timeout?: number; }): Promise<this>`
+- `waitForEnabled(opts?: { timeout?: number; }): Promise<this>`
 - `click(opts?: { timeout?: number; }): Promise<void>`
 - `dblClick(opts?: { timeout?: number; }): Promise<void>`
 - `type(text: string, opts?: { timeout?: number; }): Promise<void>`
