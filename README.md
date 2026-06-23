@@ -65,6 +65,14 @@ npm install -g bunwright # or globally, for the CLI
 
 Requires [Bun](https://bun.com) and an existing Chrome (or WebKit) installation — bunwright does not download browsers.
 
+## AI Agent Skill
+
+Bunwright ships a skill for AI coding agents. Install it with:
+
+```bash
+bunx skills add jonaspm/bunwright --skill bunwright
+```
+
 ## Quick Start
 
 Write a script:

@@ -49,4 +49,4 @@ Single package, no runtime dependencies. Two entrypoints bundled by `build.ts`:
 
 - Requires a real Chrome/WebKit install; integration tests need it. Unit tests (`chrome-spawn.test.ts`, `dsl.test.ts`) run without a browser session where possible.
 - `examples/*.ts` are runnable end-to-end demos of the DSL surface. `tsconfig.json` maps the `bunwright` package name to `src/dsl/index.ts`, so `bun run typecheck` covers the examples too.
-- `.agents/skills/bun-webview/SKILL.md` documents the `Bun.WebView` API; `.agents/skills/bunwright/SKILL.md` has project-specific guidance.
+- `skills/bun-webview/SKILL.md` documents the `Bun.WebView` API; `skills/bunwright/SKILL.md` has project-specific guidance. Install with `bunx skills add jonaspm/bunwright --skill bunwright`.
