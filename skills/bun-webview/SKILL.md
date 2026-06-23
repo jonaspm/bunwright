@@ -118,10 +118,13 @@ The constructor accepts an options object. The key documented options for `v1.3.
 
 | Parameter   | Type                                                                         | Purpose                                                                |
 | ----------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `width`     | `number`                                                                     | Viewport width in CSS pixels (default 800)                             |
+| `height`    | `number`                                                                     | Viewport height in CSS pixels (default 600)                            |
 | `backend`   | `"webkit" \| "chrome" \| { type: "chrome", path?: string, argv?: string[] }` | Select the backend or provide a custom Chrome executable and arguments |
 | `url`       | `string`                                                                     | Initial URL to load                                                    |
+| `headless`  | `boolean`                                                                    | Defaults to `true`; only `true` is implemented                         |
 | `console`   | `typeof console` or `(type, ...args) => void`                                | Capture page logs                                                      |
-| `dataStore` | profile/persistence object or path                                           | Persist browser profile data across runs                               |
+| `dataStore` | `"ephemeral" \| { directory: string }`                                       | Persist browser profile data across runs (default `"ephemeral"`)       |
 
 ### Parameter guidance
 
@@ -151,20 +154,23 @@ After creating a `Bun.WebView`, you control it through instance methods. Most of
 - `click(x, y)` — click at viewport coordinates
 - `click(selector)` — click an element matched by a CSS selector
 - `type(text)` — type text into the focused element
-- `press(key, { modifiers })` — press a key with optional modifiers
+- `press(key, options?)` — press a key with optional options
 - `scroll(dx, dy)` — scroll by delta
 - `scrollTo(selector)` — scroll to an element matched by a selector
 
 #### Viewport and protocol control
 
-- `resize(w, h)` — resize the viewport
-- `cdp(method, params)` — send a raw Chrome DevTools Protocol call
+- `resize(width, height)` — resize the viewport
+- `cdp(method, params?)` — send a raw Chrome DevTools Protocol call
+- `close()` — destroy the page; rejects pending promises; idempotent
 
 ### Page state properties
 
 - `view.url` — current page URL
 - `view.title` — current page title
 - `view.loading` — whether the page is currently loading
+- `view.onNavigated` — fires after each successful navigation, before `navigate()` resolves
+- `view.onNavigationFailed` — fires after each failed navigation, before `navigate()` rejects
 
 ## Common Usage Patterns
 
@@ -387,7 +393,7 @@ Before you ship or hand off WebView work:
 - [ ] Confirm Bun is `v1.3.12` or newer
 - [ ] Verify the app can create a new `Bun.WebView` instance
 - [ ] Confirm constructor parameters like `backend`, `console`, and `dataStore` are documented and used intentionally
-- [ ] Test key instance methods like `navigate()`, `evaluate()`, `screenshot()`, `click()`, `type()`, `press()`, `scroll()`, `resize()`, `back()`, `forward()`, and `reload()`
+- [ ] Test key instance methods like `navigate()`, `evaluate()`, `screenshot()`, `click()`, `type()`, `press()`, `scroll()`, `resize()`, `goBack()`, `goForward()`, and `reload()`
 - [ ] Verify page state properties like `view.url`, `view.title`, and `view.loading`
 - [ ] Test Chrome backend `cdp()` calls if you rely on them
 - [ ] Test event handling if you consume Chrome CDP events
