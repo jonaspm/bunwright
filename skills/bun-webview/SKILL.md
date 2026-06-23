@@ -1,5 +1,5 @@
 ---
-name: Bun WebView
+name: bun-webview
 description: Use when you need to build, automate, or document desktop-style browser windows and browser automation flows with Bun's `Bun.WebView` API. Reach for this skill when creating a new `Bun.WebView`, configuring constructor parameters, calling instance methods, using page state properties, or wiring CDP and event-based integrations.
 metadata:
   mintlify-proj: bun
@@ -40,7 +40,7 @@ One browser subprocess is shared per Bun process. Additional `new Bun.WebView()`
 
 ### Create a new `Bun.WebView`
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-11
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://bun.sh",
@@ -53,7 +53,7 @@ await view.evaluate("document.title");
 
 ### Load inline HTML with a data URL
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-15
+```ts
 const html = `<!doctype html>
 <html>
   <body>
@@ -72,7 +72,7 @@ await webview.evaluate("document.querySelector('h1')?.textContent");
 
 ### Evaluate JavaScript in the page
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-9
+```ts
 const view = new Bun.WebView({
   backend: "webkit",
   url: "https://example.com",
@@ -93,7 +93,7 @@ await view.evaluate(`
 
 The main entry point is constructing a new `Bun.WebView`:
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-8
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://example.com",
@@ -170,7 +170,7 @@ After creating a `Bun.WebView`, you control it through instance methods. Most of
 
 ### Navigate to a page
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-8
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://bun.sh",
@@ -181,7 +181,7 @@ await view.navigate("https://bun.sh/docs");
 
 ### Evaluate JavaScript and read page state
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-10
+```ts
 const view = new Bun.WebView({
   backend: "webkit",
   url: "https://example.com",
@@ -206,7 +206,7 @@ await view.evaluate(`
 
 ### Capture a screenshot
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-11
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://example.com",
@@ -220,7 +220,7 @@ const image = await view.screenshot({
 
 ### Click and type
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-10
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://example.com/login",
@@ -234,7 +234,7 @@ await view.type("secret");
 
 ### Scroll and resize
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-10
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://example.com",
@@ -247,7 +247,7 @@ await view.resize(1440, 900);
 
 ### Use raw CDP on the Chrome backend
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-10
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://example.com",
@@ -269,13 +269,13 @@ On the Chrome backend:
 
 Typical pattern:
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-13
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "https://example.com",
 });
 
-view.addEventListener("Page.loadEventFired", event => {
+view.addEventListener("Page.loadEventFired", (event) => {
   console.log(event.data);
 });
 ```
@@ -332,7 +332,7 @@ Confirm you are using Bun `v1.3.12` or newer.
 
 Start with the smallest working constructor:
 
-```/dev/null/factuclaw/.agents/skills/bun-webview/example.ts#L1-6
+```ts
 const view = new Bun.WebView({
   backend: "chrome",
   url: "http://localhost:3000",

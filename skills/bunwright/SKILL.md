@@ -1,5 +1,5 @@
 ---
-name: Bunwright
+name: bunwright
 description: Use this skill when you need lightweight, scriptable browser automation in Bun based on `Bun.WebView`.
 metadata:
   mintlify-proj: bun
