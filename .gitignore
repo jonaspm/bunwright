@@ -37,3 +37,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Database files
 *.db
+
+# Agents
+/.agents/skills
+/.claude/skills
