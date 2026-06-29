@@ -122,9 +122,9 @@ Non-chainable: `evaluate(fn)`, `locator(sel)`, `$`/`$$` (ElementHandle snapshots
 
 ## Repository References
 
-- CLI entrypoint: `src/bunwright.ts`
-- library entrypoint: `src/dsl/index.ts`
-- API reference: `docs/api-reference.md` (auto-generated; regenerate with `bun run docs`)
-- runnable examples: `examples/*.ts`
+- CLI entrypoint: `packages/app/src/bunwright.ts`
+- library entrypoint: `packages/app/src/dsl/index.ts`
+- API reference: `packages/app/docs/api-reference.md` (auto-generated; regenerate with `bun run docs`)
+- runnable examples: `packages/app/examples/*.ts`
 
 Use those files as the source of truth when adapting bunwright in another project.

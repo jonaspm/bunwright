@@ -1,33 +1,11 @@
 {
-  "name": "bunwright",
-  "version": "0.3.1",
-  "description": "The lightweight browser automation library for Bun",
-  "homepage": "https://github.com/jonaspm/bunwright#readme",
-  "bugs": {
-    "url": "https://github.com/jonaspm/bunwright/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jonaspm/bunwright.git"
-  },
-  "bin": {
-    "bunwright": "dist/bunwright.mjs"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE.md"
+  "name": "bunwright-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
   ],
   "type": "module",
-  "module": "./dist/index.mjs",
-  "types": "./dist/types.d.ts",
   "scripts": {
-    "build": "bun run build:dist && bun run build:types",
-    "build:dist": "bun build.ts",
-    "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/dsl/index.ts",
-    "docs": "bun run build && bun run scripts/generate-api-docs.ts",
-    "test": "bun test",
-    "typecheck": "tsc --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
@@ -35,7 +13,6 @@
     "lint-staged": "lint-staged",
     "prepare": "node -e \"try{const m=require('simple-git-hooks');if(!m.skipInstall())m.setHooksFromConfig(process.cwd(),process.argv)}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e}\""
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/bun": "1.3.14",
     "lint-staged": "^17.0.7",
@@ -43,17 +20,11 @@
     "oxlint": "^1.70.0",
     "simple-git-hooks": "^2.11.1"
   },
-  "peerDependencies": {
-    "typescript": "^6.0.3"
-  },
   "simple-git-hooks": {
     "pre-commit": "bun run lint-staged"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs,json,md}": "oxfmt --no-error-on-unmatched-pattern"
-  },
-  "engines": {
-    "bun": ">=1.3.12"
   },
   "packageManager": "bun@1.3.14"
 }

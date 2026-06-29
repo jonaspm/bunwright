@@ -11,6 +11,16 @@
         "oxlint": "^1.70.0",
         "simple-git-hooks": "^2.11.1",
       },
+    },
+    "packages/app": {
+      "name": "bunwright",
+      "version": "0.3.1",
+      "bin": {
+        "bunwright": "dist/bunwright.mjs",
+      },
+      "devDependencies": {
+        "bun-types": "1.3.14",
+      },
       "peerDependencies": {
         "typescript": "^6.0.3",
       },
@@ -104,6 +114,8 @@
     "ansi-styles": ["ansi-styles@6.2.3", "", {}, "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg=="],
 
     "bun-types": ["bun-types@1.3.14", "", { "dependencies": { "@types/node": "*" } }, "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ=="],
+
+    "bunwright": ["bunwright@workspace:packages/app"],
 
     "cli-cursor": ["cli-cursor@5.0.0", "", { "dependencies": { "restore-cursor": "^5.0.0" } }, "sha512-aCj4O5wKyszjMmDT4tZj93kxyydN/K5zPWSCe6/0AV/AA1pqe5ZBIw0a2ZfPQV7lL5/yb5HsUreJ6UFAF1tEQw=="],
 

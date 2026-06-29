@@ -27,6 +27,7 @@ jobs:
 
       - name: Typecheck
         run: bun run typecheck
+        working-directory: packages/app
 
       - name: Lint
         run: bun run lint
@@ -36,8 +37,10 @@ jobs:
 
       - name: Build
         run: bun run build
+        working-directory: packages/app
 
       - name: Run tests
         run: bun test
+        working-directory: packages/app
         env:
           BUN_CHROME_PATH: /usr/bin/google-chrome

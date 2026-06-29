@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { pathToFileURL } from "url";
 
-const skillPath = new URL("../.agents/skills/bun-webview/SKILL.md", import.meta.url);
-const bunTypesPath = new URL("../node_modules/bun-types/bun.d.ts", import.meta.url);
+const skillPath = new URL("../../../.agents/skills/bun-webview/SKILL.md", import.meta.url);
+const bunTypesPath = pathToFileURL(require.resolve("bun-types/bun.d.ts"));
 
 const [skillText, bunTypesText] = await Promise.all([
   Bun.file(skillPath).text(),
