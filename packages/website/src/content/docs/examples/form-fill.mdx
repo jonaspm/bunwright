@@ -1,0 +1,28 @@
+---
+title: Form Fill
+description: CSS selectors and Locator.count().
+---
+
+Fill a form with `css:` selectors and count matching inputs via `Locator`.
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page
+  .navigate("https://httpbin.org/forms/post")
+  .type("css:input[name='custname']", "John Doe")
+  .type("css:input[name='custtel']", "555-0100");
+
+const count = await page.locator("css:input").count();
+console.log(`Found ${count} inputs`);
+
+await page.screenshot("./form-filled.png");
+await browser.close();
+```
+
+### Key patterns
+
+- **`css:` selectors** — use CSS attribute selectors for form fields
+- **`Locator.count()`** — returns the number of matching elements (terminal value, not chainable)

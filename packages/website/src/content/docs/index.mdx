@@ -1,0 +1,68 @@
+---
+title: Bunwright
+description: The lightweight browser automation library for Bun.
+template: splash
+hero:
+  tagline: TypeScript-first browser automation built on Bun.WebView — a smaller, Bun-native alternative for flows where Playwright would be heavier than necessary.
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Get Started
+      link: /guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/jonaspm/bunwright
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", "user@example.com")
+  .type("label:Password", process.env.APP_PASSWORD!)
+  .click("role:button[name='Login']")
+  .waitForURL("**/dashboard")
+  .screenshot("./dashboard.png");
+
+await browser.close();
+```
+
+<CardGrid stagger>
+  <Card title="Bun-native" icon="rocket">
+    Built directly on <code>Bun.WebView</code> — zero runtime dependencies, no browser downloads.
+    Uses the Chrome or WebKit already on the machine.
+  </Card>
+  <Card title="Playwright-style API" icon="open-book">
+    Pages, locators, auto-waiting, semantic selectors. Familiar surface, smaller scope.
+  </Card>
+  <Card title="Chainable" icon="link">
+    Actions queue lazily and run on <code>await</code>, with fail-fast semantics and per-step
+    results via <code>.all()</code>.
+  </Card>
+  <Card title="Auto-waiting & retries" icon="restart">
+    Every action waits for visible + enabled, then retries up to 3 times with exponential backoff
+    within <code>retryTimeout</code>.
+  </Card>
+  <Card title="Semantic selectors" icon="search">
+    <code>role:</code>, <code>label:</code>, <code>text:</code>,<code>css:</code>,{" "}
+    <code>xpath:</code> — prefixed strings that read like intent, not brittle DOM paths.
+  </Card>
+  <Card title="Scriptable" icon="terminal">
+    Write a TypeScript file, run it with <code>bunx bunwright script.ts</code>
+    or plain <code>bun run</code>. <code>.env</code> loading built in.
+  </Card>
+</CardGrid>
+
+<LinkCard
+  title="Installation"
+  description="Add bunwright to your project in seconds."
+  href="/guides/getting-started/"
+/>

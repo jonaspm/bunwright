@@ -1,0 +1,65 @@
+---
+title: Windows Notes
+description: Chrome spawning workaround and headless defaults on Windows.
+---
+
+`Bun.WebView` has a known issue spawning its own Chrome subprocess on Windows. Bunwright works around this automatically — no configuration needed.
+
+## What happens
+
+On Windows with the `chrome` backend, Bunwright:
+
+1. Finds a free port on `localhost`
+2. Launches Chrome with `--remote-debugging-port=<port>`
+3. Polls `http://127.0.0.1:<port>/json/version` for the `webSocketDebuggerUrl`
+4. Passes that WebSocket URL as the `Bun.WebView` backend
+
+In this mode, `backend.path` and `backend.argv` from your config are **ignored** — the workaround manages the Chrome process itself.
+
+## Chrome executable resolution
+
+Bunwright finds Chrome in this order:
+
+1. `BUN_CHROME_PATH` environment variable
+2. `config.backend.path` in your `bunwright.config.ts`
+3. Common Windows install locations:
+   - `C:\Program Files\Google\Chrome\Application\chrome.exe`
+   - `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
+   - `%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe`
+
+If none are found, an error is thrown.
+
+## Headless mode
+
+By default, Bunwright runs Chrome headless (`--headless=new`) on Windows and headed elsewhere. Override with config:
+
+```ts
+import { defineConfig } from "bunwright";
+
+export default defineConfig({
+  headless: false, // show the browser window on Windows
+});
+```
+
+## Cleanup
+
+The spawned Chrome process is:
+
+- Killed on `browser.close()`
+- Killed on process exit (via `beforeExit` / `exit` handlers)
+
+You don't need to manage it manually.
+
+## Debugging
+
+Set `BUNWRIGHT_DEBUG=1` to log the spawned Chrome port:
+
+```bash
+set BUNWRIGHT_DEBUG=1
+bunx bunwright my-script.ts
+# [bunwright] Spawned Chrome on port 9222 (Windows workaround)
+```
+
+## WebKit on Windows
+
+If you use `backend: "webkit"`, the Windows workaround does not apply — `Bun.WebView` handles WebKit directly. The workaround is specific to the Chrome backend.

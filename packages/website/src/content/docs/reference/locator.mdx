@@ -1,0 +1,92 @@
+---
+title: Locator
+description: The Locator class — lazy element resolution with actions, reading, state, and narrowing.
+---
+
+`Locator` represents a query for elements. Created via `page.locator()`, it is **lazy** — it resolves the selector on each action, not at creation time.
+
+```ts
+const button = page.locator("role:button[name='Submit']");
+await button.click();
+```
+
+## Methods
+
+{/* AUTO:START:Locator:methods */}
+| Method | Signature |
+| --- | --- |
+| `getPage` | `getPage(): Page` |
+| `resolveSelector` | `resolveSelector(): Promise&lt;string&gt;` |
+| `waitForVisible` | `waitForVisible(opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `waitForEnabled` | `waitForEnabled(opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `click` | `click(opts?: { timeout?: number; }): Promise&lt;void&gt;` |
+| `dblClick` | `dblClick(opts?: { timeout?: number; }): Promise&lt;void&gt;` |
+| `type` | `type(text: string, opts?: { timeout?: number; }): Promise&lt;void&gt;` |
+| `fill` | `fill(text: string): Promise&lt;void&gt;` |
+| `press` | `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise&lt;void&gt;` |
+| `screenshot` | `screenshot(opts?: { path?: string; }): Promise&lt;void&gt;` |
+| `evaluate<T>` | `evaluate&lt;T&gt;(fn: (el: Element) =&gt; T): Promise&lt;T&gt;` |
+| `innerText` | `innerText(): Promise&lt;string&gt;` |
+| `innerHTML` | `innerHTML(): Promise&lt;string&gt;` |
+| `getAttribute` | `getAttribute(name: string): Promise&lt;string \| null&gt;` |
+| `isVisible` | `isVisible(): Promise&lt;boolean&gt;` |
+| `isEnabled` | `isEnabled(): Promise&lt;boolean&gt;` |
+| `isChecked` | `isChecked(): Promise&lt;boolean&gt;` |
+| `filter` | `filter(sel: Selector): Locator` |
+| `first` | `first(): Locator` |
+| `last` | `last(): Locator` |
+| `nth` | `nth(index: number): Locator` |
+| `count` | `count(): Promise&lt;number&gt;` |
+| `toElement` | `toElement(): Promise&lt;ElementHandle&gt;` |
+{/* AUTO:END:Locator:methods */}
+
+## Actions
+
+```ts
+const submit = page.locator("role:button[name='Submit']");
+
+await submit.click();
+await submit.dblClick();
+await submit.type("Hello");
+await submit.fill("Replaced text"); // clears first
+await submit.press("Enter");
+await submit.screenshot({ path: "./element.png" });
+```
+
+## Reading
+
+```ts
+const text = await submit.innerText();
+const html = await submit.innerHTML();
+const value = await submit.getAttribute("value");
+const count = await submit.count();
+```
+
+## State
+
+```ts
+const visible = await submit.isVisible(); // boolean
+const enabled = await submit.isEnabled(); // boolean
+const checked = await submit.isChecked(); // boolean
+```
+
+## Narrowing
+
+```ts
+const items = page.locator("css:li");
+
+await items.first().click();
+await items.last().click();
+await items.nth(2).click();
+await items.filter("css:.active").click();
+await items.toElement(); // returns an ElementHandle
+```
+
+`filter()` returns a new `Locator` with an additional selector. `first()`, `last()`, and `nth()` return `Locator` subclasses that resolve to a specific index.
+
+## Waiting
+
+```ts
+await submit.waitForVisible({ timeout: 5000 });
+await submit.waitForEnabled({ timeout: 5000 });
+```

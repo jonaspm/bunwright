@@ -1,0 +1,38 @@
+---
+title: Login Flow
+description: "label: and role: selectors, waitForURL, parallel reads."
+---
+
+A login flow using `label:` / `role:` selectors, `waitForURL` with a glob, and parallel reads via `Promise.all`.
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page
+  .navigate("https://the-internet.herokuapp.com/login")
+  .type("label:Username", "tomsmith")
+  .type("label:Password", "SuperSecretPassword!")
+  .click("role:button[name=' Login']")
+  .waitForURL("**/secure");
+
+const [title, status] = await Promise.all([
+  page.evaluate(() => document.title),
+  page.locator("role:status").innerText(),
+]);
+
+console.log("Logged in successfully");
+console.log("Title:", title);
+console.log("Status:", status);
+
+await page.screenshot("./login-success.png");
+await browser.close();
+```
+
+### Key patterns
+
+- **`label:` selectors** — target inputs by their associated `<label>` text
+- **`role:button[name='...']`** — find a button by its accessible name
+- **`waitForURL("**/secure")`\*\* — wait for navigation after login
+- **`Promise.all`** — `evaluate()` calls are serialized per WebView, so parallel reads are safe

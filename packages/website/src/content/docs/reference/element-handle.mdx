@@ -1,0 +1,57 @@
+---
+title: ElementHandle
+description: The ElementHandle class — a resolved snapshot of a single element.
+---
+
+`ElementHandle` represents a resolved element — a snapshot with a CSS selector and a reference to the page. Created via `page.$()`, `page.$$()`, or `locator.toElement()`.
+
+```ts
+const handle = await page.$("css:button");
+const element = await page.locator("role:button").toElement();
+```
+
+Unlike `Locator`, `ElementHandle` holds a resolved CSS selector and does not re-query on each action.
+
+## Methods
+
+{/* AUTO:START:ElementHandle:methods */}
+| Method | Signature |
+| --- | --- |
+| `click` | `click(): Promise&lt;void&gt;` |
+| `dblClick` | `dblClick(): Promise&lt;void&gt;` |
+| `type` | `type(text: string): Promise&lt;void&gt;` |
+| `press` | `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise&lt;void&gt;` |
+| `screenshot` | `screenshot(opts?: { path?: string; }): Promise&lt;void&gt;` |
+| `evaluate<T>` | `evaluate&lt;T&gt;(fn: (el: Element) =&gt; T): Promise&lt;T&gt;` |
+| `innerText` | `innerText(): Promise&lt;string&gt;` |
+| `innerHTML` | `innerHTML(): Promise&lt;string&gt;` |
+| `getAttribute` | `getAttribute(name: string): Promise&lt;string \| null&gt;` |
+| `isVisible` | `isVisible(): Promise&lt;boolean&gt;` |
+| `isEnabled` | `isEnabled(): Promise&lt;boolean&gt;` |
+{/* AUTO:END:ElementHandle:methods */}
+
+## Actions
+
+```ts
+await handle.click();
+await handle.dblClick();
+await handle.type("Hello");
+await handle.press("Enter");
+await handle.screenshot({ path: "./element.png" });
+```
+
+## Reading
+
+```ts
+const text = await handle.innerText();
+const html = await handle.innerHTML();
+const value = await handle.getAttribute("href");
+const result = await handle.evaluate((el) => el.tagName);
+```
+
+## State
+
+```ts
+const visible = await handle.isVisible(); // boolean
+const enabled = await handle.isEnabled(); // boolean
+```

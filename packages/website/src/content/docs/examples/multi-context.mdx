@@ -1,0 +1,31 @@
+---
+title: Multi-Context
+description: Two contexts driven in parallel.
+---
+
+Run two contexts in parallel and read each page's URL.
+
+```ts
+import { browser } from "bunwright";
+
+const [adminCtx, userCtx] = await Promise.all([browser.newContext(), browser.newContext()]);
+
+const adminPage = await adminCtx.newPage();
+const userPage = await userCtx.newPage();
+
+await Promise.all([
+  adminPage.navigate("https://example.com/admin"),
+  userPage.navigate("https://example.com"),
+]);
+
+console.log("Admin URL:", adminPage.webview.url);
+console.log("User URL:", userPage.webview.url);
+
+await browser.close();
+```
+
+### Key patterns
+
+- **`browser.newContext()`** — create multiple contexts (they share the same underlying WebView)
+- **`Promise.all`** — drive multiple pages concurrently
+- **`page.webview.url`** — access the underlying `Bun.WebView` directly for synchronous reads

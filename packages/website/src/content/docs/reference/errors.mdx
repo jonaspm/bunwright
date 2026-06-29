@@ -1,0 +1,80 @@
+---
+title: Errors
+description: Error hierarchy and error handling patterns.
+---
+
+All Bunwright errors extend `BunwrightError`, which extends `Error`. Import them to branch on failure type in your catch blocks.
+
+```ts
+import {
+  BunwrightError,
+  TimeoutError,
+  ElementNotFoundError,
+  SelectorError,
+  BrowserError,
+} from "bunwright";
+```
+
+## Classes
+
+{/* AUTO:START:Errors:classes */}
+| Class | Extends | Constructor |
+| --- | --- | --- |
+| `BunwrightError` | `Error` | `(message: string)` |
+| `TimeoutError` | `BunwrightError` | `(message: string)` |
+| `ElementNotFoundError` | `BunwrightError` | `(message: string)` |
+| `SelectorError` | `BunwrightError` | `(message: string)` |
+| `BrowserError` | `BunwrightError` | `(message: string)` |
+{/* AUTO:END:Errors:classes */}
+
+## Hierarchy
+
+```
+Error
+  └── BunwrightError
+        ├── TimeoutError
+        ├── ElementNotFoundError
+        ├── SelectorError
+        └── BrowserError
+```
+
+## Error handling
+
+Catch specific errors with `instanceof`:
+
+```ts
+import { browser, TimeoutError, ElementNotFoundError } from "bunwright";
+
+const page = await browser.newPage();
+
+try {
+  await page.navigate("https://example.com").click("role:button[name='Missing']");
+} catch (error) {
+  if (error instanceof TimeoutError) {
+    console.log("Element took too long to appear");
+  } else if (error instanceof ElementNotFoundError) {
+    console.log("Element was not found in the DOM");
+  } else {
+    throw error; // re-throw unknown errors
+  }
+}
+
+await browser.close();
+```
+
+## Fail-fast chains
+
+When a step in a chain throws, every step queued after it is skipped. The `await` rejects with the **original** error — `instanceof` checks are preserved:
+
+```ts
+try {
+  await page
+    .navigate("https://example.com")
+    .click("role:button[name='Missing']") // throws TimeoutError
+    .waitForURL("**/success"); // never runs
+} catch (error) {
+  if (error instanceof TimeoutError) {
+    // the error from the click step, not a wrapped error
+  }
+}
+```

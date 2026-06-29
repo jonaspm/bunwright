@@ -1,0 +1,23 @@
+---
+title: Screenshot
+description: Minimal navigate + screenshot.
+---
+
+A minimal smoke test: open a page, capture a screenshot, exit.
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page.navigate("https://example.com").screenshot("./example.png");
+
+await browser.close();
+console.log("Screenshot saved");
+```
+
+Run it:
+
+```bash
+bunx bunwright screenshot.ts
+```

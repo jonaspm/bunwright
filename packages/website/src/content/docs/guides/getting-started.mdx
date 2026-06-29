@@ -1,0 +1,81 @@
+---
+title: Getting Started
+description: Install Bunwright and run your first browser automation script.
+---
+
+Bunwright is a lightweight browser automation library for Bun. This guide walks through installation, your first script, and the CLI.
+
+## Prerequisites
+
+- [Bun](https://bun.com) `>= 1.3.12`
+- An existing Chrome or WebKit installation — Bunwright does **not** download browsers
+
+## Installation
+
+```bash
+bun add bunwright
+```
+
+Or install globally for the CLI:
+
+```bash
+npm install -g bunwright
+```
+
+## Your First Script
+
+Create a TypeScript file that imports `browser` from `bunwright`:
+
+```ts
+// shot.ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page.navigate("https://example.com").screenshot("./example.png");
+
+await browser.close();
+console.log("Screenshot saved");
+```
+
+## Running Scripts
+
+### Using the CLI
+
+```bash
+bunx bunwright shot.ts
+```
+
+The CLI loads `.env.local` / `.env` from the working directory before running the script. If the script has a default export that is a function, the CLI calls it automatically.
+
+### Using Bun directly
+
+```bash
+bun run shot.ts
+```
+
+The CLI is optional — any `bun run` script can import `bunwright` directly.
+
+## Quick Example: Login Flow
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", "user@example.com")
+  .type("label:Password", process.env.APP_PASSWORD!)
+  .click("role:button[name='Login']")
+  .waitForURL("**/dashboard")
+  .screenshot("./dashboard.png");
+
+await browser.close();
+```
+
+## Next Steps
+
+- [Selectors](/guides/selectors/) — learn the prefixed selector syntax
+- [Chaining](/guides/chaining/) — understand lazy chains and fail-fast semantics
+- [Configuration](/guides/configuration/) — customize viewport, backend, and retries

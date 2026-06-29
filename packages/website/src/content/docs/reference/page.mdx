@@ -1,0 +1,126 @@
+---
+title: Page
+description: The Page class — navigation, interaction, inspection, and waiting.
+---
+
+`Page` is the primary interface for browser automation. Created via `browser.newPage()`, it wraps the shared `Bun.WebView` and exposes chainable methods that return `Promise<this>`.
+
+```ts
+const page = await browser.newPage();
+```
+
+## Properties
+
+{/* AUTO:START:Page:properties */}
+| Property | Type |
+| --- | --- |
+| `readonly [CHAINABLE]` | `true` |
+| `readonly webview` | `WebView` |
+| `retryTimeout` | `number` |
+{/* AUTO:END:Page:properties */}
+
+## Methods
+
+{/* AUTO:START:Page:methods */}
+| Method | Signature |
+| --- | --- |
+| `close` | `close(): void` |
+| `navigate` | `navigate(url: string, opts?: { waitForLoadState?: LoadState; }): Promise&lt;this&gt;` |
+| `back` | `back(): Promise&lt;this&gt;` |
+| `forward` | `forward(): Promise&lt;this&gt;` |
+| `reload` | `reload(): Promise&lt;this&gt;` |
+| `click` | `click(sel: Selector, opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `dblClick` | `dblClick(sel: Selector, opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `type` | `type(sel: Selector, text: string, opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `press` | `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise&lt;this&gt;` |
+| `scroll` | `scroll(dx: number, dy: number): Promise&lt;this&gt;` |
+| `scrollTo` | `scrollTo(sel: Selector, opts?: { block?: "start" \| "center" \| "end"; timeout?: number; }): Promise&lt;this&gt;` |
+| `resize` | `resize(width: number, height: number): Promise&lt;this&gt;` |
+| `screenshot` | `screenshot(path?: string): Promise&lt;this&gt;` |
+| `expect` | `expect(sel: Selector, opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `check` | `check(sel: Selector): Promise&lt;this&gt;` |
+| `waitForLoadState` | `waitForLoadState(state: LoadState, opts?: { timeout?: number; }): Promise&lt;this&gt;` |
+| `evaluate<T>` | `evaluate&lt;T&gt;(fn: () =&gt; T): Promise&lt;T&gt;` |
+| `locator` | `locator(sel: Selector): Locator` |
+| `$` | `$(sel: Selector): Promise&lt;import("./locator.js").ElementHandle \| null&gt;` |
+| `$$` | `$$(sel: Selector): Promise&lt;import("./locator.js").ElementHandle[]&gt;` |
+| `waitForSelector` | `waitForSelector(sel: Selector, opts?: { timeout?: number; }): Promise&lt;void&gt;` |
+| `waitForURL` | `waitForURL(url: string \| RegExp, opts?: { timeout?: number; }): Promise&lt;void&gt;` |
+| `exists` | `exists(sel: Selector): Promise&lt;boolean&gt;` |
+| `waitFor` | `waitFor(sel: Selector, opts?: { timeout?: number; }): Promise&lt;boolean&gt;` |
+| `waitForTimeout` | `waitForTimeout(ms: number): Promise&lt;void&gt;` |
+| `cdp` | `cdp(method: string, params?: Record&lt;string, unknown&gt;): Promise&lt;unknown&gt;` |
+{/* AUTO:END:Page:methods */}
+
+## Navigation
+
+```ts
+await page.navigate("https://example.com").back().forward().reload();
+```
+
+`navigate` optionally accepts `waitForLoadState` to block until a specific load state:
+
+```ts
+await page.navigate("https://example.com", {
+  waitForLoadState: "networkidle",
+});
+```
+
+`waitForURL` accepts a URL glob (`**` spans `/`, `*` stays within a segment, `?` is one character; anchored to the full URL) or a `RegExp`:
+
+```ts
+await page.waitForURL("**/dashboard");
+await page.waitForURL(/\/users\/\d+/);
+```
+
+## Interaction
+
+```ts
+await page
+  .click("role:button[name='Submit']")
+  .type("label:Email", "user@example.com")
+  .press("Enter")
+  .scroll(0, 500)
+  .scrollTo("role:button[name='Save']")
+  .resize(1920, 1080);
+```
+
+Every interaction auto-waits for the element to be visible and enabled, then retries up to 3 times with exponential backoff.
+
+## Inspection
+
+```ts
+const title = await page.evaluate(() => document.title);
+const count = await page.locator("css:input").count();
+const exists = await page.exists("role:button[name='Submit']");
+const element = await page.$("css:button");
+const elements = await page.$$("css:li");
+```
+
+`evaluate` takes an arrow function, serializes it, and runs it in the page. `locator()` returns a lazy `Locator` — see the [Locator reference](/reference/locator/).
+
+## Waiting
+
+```ts
+await page.waitForSelector("css:.loaded");
+await page.waitForLoadState("networkidle");
+await page.waitForURL("**/dashboard");
+await page.waitFor("css:.modal"); // returns boolean
+await page.waitForTimeout(2000); // prefer waitForSelector when possible
+```
+
+## Screenshots
+
+```ts
+await page.screenshot("./page.png");
+await page.screenshot(); // no file, just captures
+```
+
+## CDP
+
+Raw Chrome DevTools Protocol access:
+
+```ts
+const cookies = await page.cdp("Network.getCookies", {});
+await page.cdp("Network.clearBrowserCookies", {});
+```
