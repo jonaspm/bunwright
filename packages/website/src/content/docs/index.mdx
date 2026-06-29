@@ -47,15 +47,15 @@ await browser.close();
     Actions queue lazily and run on <code>await</code>, with fail-fast semantics and per-step
     results via <code>.all()</code>.
   </Card>
-  <Card title="Auto-waiting & retries" icon="restart">
+  <Card title="Auto-waiting & retries" icon="clock">
     Every action waits for visible + enabled, then retries up to 3 times with exponential backoff
     within <code>retryTimeout</code>.
   </Card>
-  <Card title="Semantic selectors" icon="search">
+  <Card title="Semantic selectors" icon="magnifier">
     <code>role:</code>, <code>label:</code>, <code>text:</code>,<code>css:</code>,{" "}
     <code>xpath:</code> — prefixed strings that read like intent, not brittle DOM paths.
   </Card>
-  <Card title="Scriptable" icon="terminal">
+  <Card title="Scriptable" icon="document">
     Write a TypeScript file, run it with <code>bunx bunwright script.ts</code>
     or plain <code>bun run</code>. <code>.env</code> loading built in.
   </Card>
