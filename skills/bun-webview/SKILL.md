@@ -15,7 +15,7 @@ Use this skill when you are:
 - Creating a desktop window or browser automation target with Bun's `Bun.WebView` API
 - Loading HTML, navigating to URLs, or evaluating JavaScript in a page
 - Documenting or implementing `Bun.WebView` constructor options
-- Looking up instance methods such as `navigate()`, `evaluate()`, `screenshot()`, `click()`, `type()`, `press()`, `scroll()`, `resize()`, `goBack()`, `goForward()`, `reload()`, or `cdp()`
+- Looking up instance methods such as `navigate()`, `evaluate()`, `screenshot()`, `click()`, `type()`, `press()`, `scroll()`, `resize()`, `back()`, `forward()`, `reload()`, or `cdp()`
 - Using page state properties like `view.url`, `view.title`, and `view.loading`
 - Handling `EventTarget` events, especially Chrome backend CDP events dispatched as `MessageEvent`
 - Configuring backend selection, console capture, and persistent profiles
@@ -144,8 +144,8 @@ After creating a `Bun.WebView`, you control it through instance methods. Most of
 
 - `navigate(url)` — navigate to a URL
 - `evaluate(expr)` — evaluate a JavaScript expression in the page; wrap statement sequences in an IIFE
-- `goBack()` — navigate backward in history
-- `goForward()` — navigate forward in history
+- `back()` — navigate backward in history
+- `forward()` — navigate forward in history
 - `reload()` — reload the current page
 
 #### Screenshots and automation
@@ -393,7 +393,7 @@ Before you ship or hand off WebView work:
 - [ ] Confirm Bun is `v1.3.12` or newer
 - [ ] Verify the app can create a new `Bun.WebView` instance
 - [ ] Confirm constructor parameters like `backend`, `console`, and `dataStore` are documented and used intentionally
-- [ ] Test key instance methods like `navigate()`, `evaluate()`, `screenshot()`, `click()`, `type()`, `press()`, `scroll()`, `resize()`, `goBack()`, `goForward()`, and `reload()`
+- [ ] Test key instance methods like `navigate()`, `evaluate()`, `screenshot()`, `click()`, `type()`, `press()`, `scroll()`, `resize()`, `back()`, `forward()`, and `reload()`
 - [ ] Verify page state properties like `view.url`, `view.title`, and `view.loading`
 - [ ] Test Chrome backend `cdp()` calls if you rely on them
 - [ ] Test event handling if you consume Chrome CDP events

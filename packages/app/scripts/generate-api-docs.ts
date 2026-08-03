@@ -309,7 +309,7 @@ if (exportedFuncs.length) md += `- [Functions](#functions)\n`;
 md += `\n`;
 
 const sorted = <T extends { name: string }>(arr: T[]) =>
-  arr.sort((a, b) => a.name.localeCompare(b.name));
+  arr.toSorted((a, b) => a.name.localeCompare(b.name));
 
 if (exportedClasses.length) {
   md += `## Classes\n\n`;
