@@ -110,13 +110,16 @@ export async function runInit(): Promise<number> {
 
   const projectHeader = "\u001b[1mProject:\u001b[0m";
   const globalHeader = "\u001b[1mGlobal:\u001b[0m";
-  const projectLines = TARGETS.filter((t) => !t.global);
-  const globalLines = TARGETS.filter((t) => t.global);
+  const render = (t: InitTarget, i: number) => console.log(`    ${i + 1}) ${t.label}`);
 
   console.log(`  ${projectHeader}`);
-  projectLines.forEach((t, i) => console.log(`    ${i + 1}) ${t.label}`));
+  TARGETS.forEach((t, i) => {
+    if (!t.global) render(t, i);
+  });
   console.log(`  ${globalHeader}`);
-  globalLines.forEach((t, i) => console.log(`    ${projectLines.length + i + 1}) ${t.label}`));
+  TARGETS.forEach((t, i) => {
+    if (t.global) render(t, i);
+  });
   console.log("");
 
   const selection = await promptMultiSelect("Select install targets", TARGETS);
