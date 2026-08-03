@@ -35,7 +35,7 @@
     "bun-types": "1.3.14"
   },
   "peerDependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "engines": {
     "bun": ">=1.3.12"
