@@ -64,6 +64,8 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+        env:
+          SKIP_INSTALL_SIMPLE_GIT_HOOKS: "1"
 
       - name: Pre-publish checks
         working-directory: packages/app
