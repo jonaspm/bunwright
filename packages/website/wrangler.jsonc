@@ -11,4 +11,7 @@
   "observability": {
     "enabled": true,
   },
+  "vars": {
+    "SKIP_INSTALL_SIMPLE_GIT_HOOKS": "1"
+  }
 }
