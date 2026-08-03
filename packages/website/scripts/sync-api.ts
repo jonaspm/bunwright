@@ -15,12 +15,10 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, "..", "..", "..");
-const WEBSITE = resolve(__dirname, "..");
+const ROOT = resolve(import.meta.dir, "..", "..", "..");
+const WEBSITE = resolve(import.meta.dir, "..");
 
 const SOURCE = resolve(ROOT, "packages", "app", "docs", "api-reference.md");
 const DOCS_DIR = resolve(WEBSITE, "src", "content", "docs");

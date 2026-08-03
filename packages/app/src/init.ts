@@ -99,6 +99,10 @@ export function promptMultiSelect(question: string, options: InitTarget[]): Prom
   });
 }
 
+function renderTarget(t: InitTarget, i: number): void {
+  console.log(`    ${i + 1}) ${t.label}`);
+}
+
 export async function runInit(): Promise<number> {
   if (!process.stdin.isTTY) {
     console.error("bunwright init requires an interactive terminal.");
@@ -110,16 +114,15 @@ export async function runInit(): Promise<number> {
 
   const projectHeader = "\u001b[1mProject:\u001b[0m";
   const globalHeader = "\u001b[1mGlobal:\u001b[0m";
-  const render = (t: InitTarget, i: number) => console.log(`    ${i + 1}) ${t.label}`);
 
   console.log(`  ${projectHeader}`);
-  TARGETS.forEach((t, i) => {
-    if (!t.global) render(t, i);
-  });
+  for (const [i, t] of TARGETS.entries()) {
+    if (!t.global) renderTarget(t, i);
+  }
   console.log(`  ${globalHeader}`);
-  TARGETS.forEach((t, i) => {
-    if (t.global) render(t, i);
-  });
+  for (const [i, t] of TARGETS.entries()) {
+    if (t.global) renderTarget(t, i);
+  }
   console.log("");
 
   const selection = await promptMultiSelect("Select install targets", TARGETS);
