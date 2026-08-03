@@ -1,59 +1,61 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to AI agents when working with code in this repository.
+Bunwright: TypeScript-first browser-automation DSL built on `Bun.WebView` (lightweight Playwright alternative). The CLI `bunwright <script.ts>` loads `.env`/`.env.local`, imports the script, and runs its default export.
 
-## What This Is
+## Layout
 
-Bunwright is a TypeScript-first browser automation DSL built on `Bun.WebView` — a lightweight Playwright alternative for Bun. Users write automation scripts importing `browser` from `bunwright`; the CLI (`bunwright <script.ts>`) loads `.env`/`.env.local`, imports the script, and runs its default export.
+Bun monorepo (`packageManager: bun@1.3.14`), workspaces under `packages/*`:
 
-## Repository Layout
-
-Bun monorepo with two workspaces under `packages/`:
-
-- `packages/app` — the Bunwright library and CLI (publishable).
-- `packages/website` — website (placeholder).
+- `packages/app` — the `bunwright` library + CLI (publishable npm package).
+- `packages/website` — Astro/Starlight docs site (Cloudflare adapter, `wrangler.jsonc`). Read `packages/website/AGENTS.md` before touching it.
 
 ## Commands
 
 ```bash
-bun install                                          # install all workspace deps
-bun run --cwd packages/app test                       # all tests (bun:test runner)
-bun run --cwd packages/app test tests/dsl.test.ts     # single test file
-bun run --cwd packages/app test -t "name"            # filter by test name
-bun run --cwd packages/app typecheck                  # tsc --noEmit
-bun run lint                                          # oxlint (repo-wide)
-bun run lint:fix
-bun run format                                        # oxfmt (repo-wide)
-bun run --cwd packages/app build                      # bundles dist/ (build.ts) + emits .d.ts
-bun run --cwd packages/app docs                       # build + regenerate docs/api-reference.md (auto-generated, never hand-edit)
-bun run packages/app/src/bunwright.ts packages/app/examples/login.ts   # run CLI directly in dev
+bun install                                              # workspace deps (CI: bun install --frozen-lockfile)
+bun run --cwd packages/app test                          # all tests (bun:test)
+bun run --cwd packages/app test tests/dsl.test.ts        # single file
+bun run --cwd packages/app test -t "name"                # filter by name
+bun run --cwd packages/app typecheck                     # tsc --noEmit; app is the only package with typecheck
+bun run lint                                             # oxlint, repo-wide
+bun run format / format:check                            # oxfmt, repo-wide
+bun run --cwd packages/app build                         # bundle dist/ (build.ts) + emit .d.ts
+bun run --cwd packages/app docs                          # build + regenerate docs/api-reference.md (auto-gen, never hand-edit)
+bun run packages/app/src/bunwright.ts packages/app/examples/login.ts   # run CLI in dev
 ```
 
-CI (`.github/workflows/test.yml`) runs typecheck + tests on `ubuntu-latest` only. Publish triggers on `v*` tags and strips `src/`/`tests/` before publishing; package publishes from `packages/app/dist/` (bin: `dist/bunwright.mjs`, module: `dist/index.mjs`).
+CI (`.github/workflows/test.yml`, ubuntu): typecheck → lint → format:check → build → test. Replicate that order before pushing; installs google-chrome-stable and sets `BUN_CHROME_PATH`.
+
+Git hooks: `simple-git-hooks` pre-commit runs `lint-staged` → oxfmt on staged files. CI installs with `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`.
+
+Publish (`.github/workflows/publish.yml`): triggers on `v*` tags; tag version must equal `packages/app/package.json` version. Uses `npm publish --provenance` (OIDC — bun publish lacks trusted publishing). `files` + `.npmignore` restrict the tarball to `dist/` + README + LICENSE, stripping `src`/`tests`/`docs`.
 
 ## Architecture
 
-Single package, no runtime dependencies. Two entrypoints bundled by `build.ts`:
+No runtime dependencies. Two entrypoints bundled by `build.ts`:
 
 - `packages/app/src/bunwright.ts` — CLI: env loading, then dynamic-imports the user script.
-- `packages/app/src/dsl/index.ts` — library public API: `browser` (singleton), `defineConfig`, `Locator`, `ElementHandle`, error classes, types.
+- `packages/app/src/dsl/index.ts` — public API: `browser` (singleton, also the default export), `defineConfig`, `Locator`, `ElementHandle`, error classes, types.
 
 ### DSL core (`packages/app/src/dsl/`)
 
-- `chain.ts` — lazy chain proxy. `chainable(obj)` returns a non-thenable "resting" proxy; method calls start a "pending" chain (a thenable queue). Steps execute sequentially; a failed step skips the rest and rejects with the original error; `.all()` resolves with every step's result in order. Awaiting resolves to the final target, or the value if the last step returned one. Classes opt in via the `CHAINABLE` symbol marker (avoids circular imports). Method generics are erased by the mapped `Chain<T>` type, so `evaluate` has an explicit override to keep inference.
-- `browser.ts` — the heart. `BunwrightBrowser` singleton lazily creates one shared `Bun.WebView` on first `newContext()`/`newPage()` (pages/contexts are returned `chainable(...)`-wrapped). `BrowserContext` and `Page` both wrap that single WebView (contexts/pages are not isolated browser instances). `Page` methods return `Promise<this>`, auto-wait for visible+enabled, and retry up to 3 attempts with exponential backoff within `retryTimeout` (default 10s). DOM interaction happens by injecting JS strings via `webview.evaluate()`; `Bun.WebView` rejects concurrent evaluates, so they are serialized per view (`serializeEvaluate`). `waitForURL` treats strings as anchored URL globs (`globToRegex`).
-- `selectors.ts` — `Selector` is a prefixed template string: `role:`, `label:`, `text:`, `css:`, `xpath:`. `SelectorResolver.resolve()` is async (runs JS in the page) and caches per-WebView. `role:` supports implicit roles (`button` → `<button>`, `input[type=submit]`, …) with `[name='...']` matched against aria-label/value/text. Unprefixed strings pass through as CSS.
-- `config.ts` — config resolution order: defaults ← `bunwright.config.{ts,js,mjs}` in cwd ← `defineConfig()` call. Defaults: chrome backend, 1280×800, headless only on Windows.
+- `chain.ts` — lazy chain proxy. `chainable(obj)` returns a non-thenable "resting" proxy; method calls start a "pending" thenable queue. Steps run sequentially; a failed step skips the rest and rejects with the original error; `.all()` resolves with every step's result in order. Await resolves to the final target, or the value if the last step returned one. Classes opt in via the `CHAINABLE` symbol. Method generics are erased by the mapped `Chain<T>` type, so `evaluate` has an explicit override.
+- `browser.ts` — the heart. Singleton lazily creates one shared `Bun.WebView` on first `newContext()`/`newPage()`; contexts/pages are **not** isolated (all wrap the same view). `Page` methods return `Promise<this>`, auto-wait for visible+enabled, retry 3× with exponential backoff within `retryTimeout` (default 10s). DOM ops inject JS strings via `webview.evaluate()`; `Bun.WebView` rejects concurrent evaluates, so they're serialized per view (`serializeEvaluate`). Lazily `require("./locator.js")` to dodge a circular import. `waitForURL` treats strings as anchored globs (`globToRegex`).
+- `wait.ts` — `inPageWaitScript` runs waits inside the page (immediate + `MutationObserver` + interval) as a single evaluate round-trip, replacing host-side 50ms polling.
+- `selectors.ts` — prefixed template selectors: `role:`, `label:`, `text:`, `css:`, `xpath:`. `role:` has implicit roles + `[name='...']` matched against aria-label/value/text. Unprefixed strings pass through as CSS. Resolution is async and cached per WebView.
+- `config.ts` — resolution: defaults ← `bunwright.config.{ts,js,mjs}` in cwd ← `defineConfig()`. Defaults: chrome backend, 1280×800, headless true on Windows / false elsewhere.
 - `chrome-spawn.ts` — Windows workaround (see below).
-- `locator.ts` — Playwright-style `Locator` / `ElementHandle`. `Page.locator()` uses `require()` to avoid a circular import with `browser.ts`.
+- `locator.ts` — Playwright-style `Locator` / `ElementHandle`.
 - `errors.ts` — `BunwrightError` base; `SelectorError`, `TimeoutError`, `ElementNotFoundError`, `BrowserError`.
 
 ### Windows Chrome workaround
 
-`Bun.WebView`'s built-in Chrome spawn fails on win32. On Windows + chrome backend, `browser.ts` instead calls `spawnChrome()`: finds a free port, launches Chrome with `--remote-debugging-port`, polls `/json/version` for `webSocketDebuggerUrl`, and passes that URL as the WebView backend. In this mode `backend.path`/`backend.argv` are ignored. Chrome executable resolution: `BUN_CHROME_PATH` env → `config.backend.path` → common Windows install paths. Spawned Chrome is killed on `browser.close()` and process exit. `BUNWRIGHT_DEBUG=1` logs the spawned port.
+`Bun.WebView`'s built-in Chrome spawn fails on win32. On Windows + chrome backend, `browser.ts` calls `spawnChrome()`: finds a free port, launches Chrome with `--remote-debugging-port`, polls `/json/version` for `webSocketDebuggerUrl`, passes that URL as the WebView backend (`backend.path`/`backend.argv` ignored). Executable resolution: `BUN_CHROME_PATH` → `config.backend.path` → common Windows install paths (local `.env` points at Edge). Killed on `browser.close()` and process exit. `BUNWRIGHT_DEBUG=1` logs the port.
 
-## Environment Notes
+## Testing / environment
 
-- Requires a real Chrome/WebKit install; integration tests need it. Unit tests (`chrome-spawn.test.ts`, `dsl.test.ts`) run without a browser session where possible.
-- `examples/*.ts` are runnable end-to-end demos of the DSL surface. `packages/app/tsconfig.json` maps the `bunwright` package name to `src/dsl/index.ts`, so `bun run typecheck` covers the examples too.
-- `skills/bun-webview/SKILL.md` documents the `Bun.WebView` API; `skills/bunwright/SKILL.md` has project-specific guidance. Install with `bunx skills add jonaspm/bunwright --skill bunwright`.
+- Requires a real Chrome install. `integration.test.ts` (and much of `dsl.test.ts`) hit a live browser; `chain.test.ts`, `chrome-spawn.test.ts`, `config-backend.test.ts`, etc. run without one.
+- `BUN_CHROME_PATH` overrides the Chrome executable (also what CI sets).
+- `packages/app/tsconfig.json` maps `bunwright` → `src/dsl/index.ts`, so `typecheck` also covers `examples/*.ts`.
+- Website `sync-api` injects `docs/api-reference.md` into per-class pages between `<!-- AUTO:START -->` / `<!-- AUTO:END -->`; regenerate app docs first.
+- `skills/bun-webview/SKILL.md` documents the `Bun.WebView` API; `skills/bunwright/SKILL.md` has project-specific guidance.
