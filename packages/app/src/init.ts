@@ -67,19 +67,11 @@ export function buildSkillCommand(selected: InitTarget[]): string[][] {
 }
 
 function buildCommand(agents: string[], global: boolean): string[] {
-  const args: string[] = [
-    "x",
-    "skills",
-    "add",
-    SKILL_REPO,
-    "-s",
-    SKILL_NAMES[0],
-    "-s",
-    SKILL_NAMES[1],
-    "-a",
-    ...agents,
-    "-y",
-  ];
+  const args: string[] = ["x", "skills", "add", SKILL_REPO];
+  for (const skill of SKILL_NAMES) {
+    args.push("-s", skill);
+  }
+  args.push("-a", ...agents, "-y");
   if (global) args.push("-g");
   return args;
 }
