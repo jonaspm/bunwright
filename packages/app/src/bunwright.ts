@@ -41,8 +41,13 @@ await loadEnv();
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
-  console.error("Usage: bunwright <script.ts>");
+  console.error("Usage: bunwright <script.ts> | bunwright init");
   process.exit(1);
+}
+
+if (args[0] === "init") {
+  const { runInit } = await import("./init.js");
+  process.exit(await runInit());
 }
 
 const scriptPath = resolve(args[0]);

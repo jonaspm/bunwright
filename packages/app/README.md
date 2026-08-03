@@ -65,12 +65,20 @@ npm install -g bunwright # or globally, for the CLI
 
 Requires [Bun](https://bun.com) and an existing Chrome (or WebKit) installation — bunwright does not download browsers.
 
-## AI Agent Skill
+## AI Agent Skills
 
-Bunwright ships a skill for AI coding agents. Install it with:
+Bunwright ships skills for AI coding agents (`bunwright` and `bun-webview`). Install them with:
 
 ```bash
-bunx skills add jonaspm/bunwright --skill bunwright
+bunwright init
+```
+
+The command interactively asks where to install: project-level (`.agents/skills`, `.claude/skills`, `.windsurf/skills`) and/or globally for your agent harnesses (opencode, claude-code, cursor, codex, and more).
+
+To install manually:
+
+```bash
+bunx skills add jonaspm/bunwright --skill bunwright --skill bun-webview
 ```
 
 ## Quick Start
