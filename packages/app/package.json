@@ -27,6 +27,8 @@
     "build:dist": "bun build.ts",
     "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/dsl/index.ts",
     "docs": "bun run build && bun run scripts/generate-api-docs.ts",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
