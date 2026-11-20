@@ -1,0 +1,33 @@
+---
+title: Evaluate & CDP
+description: evaluate() for in-page JS and raw CDP calls.
+---
+
+Drop down to raw JS via `evaluate()` and into CDP for protocol-level calls.
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page.navigate("https://example.com");
+
+const title = await page.evaluate(() => document.title);
+const links = await page.evaluate(() =>
+  Array.from(document.querySelectorAll("a")).map((a) => a.href),
+);
+
+console.log("Title:", title);
+console.log("Links:", links);
+
+const networkResponse = await page.cdp("Network.getCookies", {});
+console.log("Cookies:", networkResponse);
+
+await browser.close();
+```
+
+### Key patterns
+
+- **`evaluate(fn)`** — pass an arrow function; it is serialized and run in the page
+- **Return values** — `evaluate` resolves to whatever the function returns (terminal value)
+- **`cdp(method, params)`** — raw Chrome DevTools Protocol access for low-level operations

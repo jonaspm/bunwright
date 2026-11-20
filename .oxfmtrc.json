@@ -8,5 +8,5 @@
   "bracketSpacing": true,
   "arrowParens": "always",
   "endOfLine": "lf",
-  "ignorePatterns": ["dist/**", "node_modules/**", ".agents/**"]
+  "ignorePatterns": ["**/dist/**", "node_modules/**", ".agents/**"]
 }

@@ -3,7 +3,7 @@ node_modules
 
 # output
 out
-dist
+**/dist
 *.tgz
 
 # code coverage
@@ -37,3 +37,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Database files
 *.db
+
+# Agents
+/.agents/skills
+/.claude/skills
+
+# Cloudflare
+.wrangler

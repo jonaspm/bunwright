@@ -32,5 +32,5 @@
     "init-declarations": "off",
     "prefer-named-capture-group": "off"
   },
-  "ignorePatterns": ["dist/**", "node_modules/**", ".agents/**"]
+  "ignorePatterns": ["**/dist/**", "node_modules/**", ".agents/**"]
 }

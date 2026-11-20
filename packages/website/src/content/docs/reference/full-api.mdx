@@ -1,0 +1,284 @@
+---
+title: Full API Reference
+description: Auto-generated API reference from type declarations.
+badge: auto
+---
+
+_This page is auto-generated from `packages/app/docs/api-reference.md` by `bun run sync-api`._
+
+_Auto-generated from `dist/*.d.ts` on 2026-06-16. Do not edit by hand._
+
+Source declarations live under `src/dsl/`. Regenerate this document with `bun run docs`.
+
+## Overview
+
+Bunwright exposes a single `browser` instance plus class-based page automation.
+
+**Public Exports** (from `src/dsl/index.ts`):
+
+- Values: `browser`, `defineConfig`
+- Classes: `Locator`, `ElementHandle`, `SelectorError`, `TimeoutError`, `ElementNotFoundError`, `BrowserError`, `BunwrightError`
+- Types: `BrowserConfig`, `ContextOptions`, `Selector`, `LoadState`, `ResolvedSelector`
+
+## Table of Contents
+
+- [Classes](#classes)
+- [Interfaces](#interfaces)
+- [Type Aliases](#type-aliases)
+- [Functions](#functions)
+
+## Classes
+
+### `BrowserContext`
+
+_Declared in `dist/browser.d.ts`_
+
+**Constructor**
+
+- `constructor(view: WebView, browserInstance: BunwrightBrowser)`
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
+
+**Methods**
+
+- `newPage(): Promise&lt;Page&gt;`
+- `close(): Promise&lt;void&gt;`
+
+### `BrowserError` extends `BunwrightError`
+
+_Declared in `dist/errors.d.ts`_
+
+**Constructor**
+
+- `constructor(message: string)`
+
+### `BunwrightError` extends `Error`
+
+_Declared in `dist/errors.d.ts`_
+
+**Constructor**
+
+- `constructor(message: string)`
+
+### `ElementHandle`
+
+_Declared in `dist/locator.d.ts`_
+
+**Constructor**
+
+- `constructor(cssSelector: string, page: Page)`
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
+
+**Methods**
+
+- `click(): Promise&lt;void&gt;`
+- `dblClick(): Promise&lt;void&gt;`
+- `type(text: string): Promise&lt;void&gt;`
+- `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise&lt;void&gt;`
+- `screenshot(opts?: { path?: string; }): Promise&lt;void&gt;`
+- `evaluate&lt;T&gt;(fn: (el: Element) =&gt; T): Promise&lt;T&gt;`
+- `innerText(): Promise&lt;string&gt;`
+- `innerHTML(): Promise&lt;string&gt;`
+- `getAttribute(name: string): Promise&lt;string | null&gt;`
+- `isVisible(): Promise&lt;boolean&gt;`
+- `isEnabled(): Promise&lt;boolean&gt;`
+
+### `ElementNotFoundError` extends `BunwrightError`
+
+_Declared in `dist/errors.d.ts`_
+
+**Constructor**
+
+- `constructor(message: string)`
+
+### `Locator`
+
+_Declared in `dist/locator.d.ts`_
+
+**Constructor**
+
+- `constructor(selector: Selector, page: Page)`
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
+
+**Methods**
+
+- `getPage(): Page`
+- `resolveSelector(): Promise&lt;string&gt;`
+- `waitForVisible(opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `waitForEnabled(opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `click(opts?: { timeout?: number; }): Promise&lt;void&gt;`
+- `dblClick(opts?: { timeout?: number; }): Promise&lt;void&gt;`
+- `type(text: string, opts?: { timeout?: number; }): Promise&lt;void&gt;`
+- `fill(text: string): Promise&lt;void&gt;`
+- `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise&lt;void&gt;`
+- `screenshot(opts?: { path?: string; }): Promise&lt;void&gt;`
+- `evaluate&lt;T&gt;(fn: (el: Element) =&gt; T): Promise&lt;T&gt;`
+- `innerText(): Promise&lt;string&gt;`
+- `innerHTML(): Promise&lt;string&gt;`
+- `getAttribute(name: string): Promise&lt;string | null&gt;`
+- `isVisible(): Promise&lt;boolean&gt;`
+- `isEnabled(): Promise&lt;boolean&gt;`
+- `isChecked(): Promise&lt;boolean&gt;`
+- `filter(sel: Selector): Locator`
+- `first(): Locator`
+- `last(): Locator`
+- `nth(index: number): Locator`
+- `count(): Promise&lt;number&gt;`
+- `toElement(): Promise&lt;ElementHandle&gt;`
+
+### `Page`
+
+_Declared in `dist/browser.d.ts`_
+
+**Constructor**
+
+- `constructor(view: WebView, _context: BrowserContext)`
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
+- `readonly webview: WebView`
+- `retryTimeout: number`
+
+**Methods**
+
+- `close(): void`
+- `navigate(url: string, opts?: { waitForLoadState?: LoadState; }): Promise&lt;this&gt;`
+- `back(): Promise&lt;this&gt;`
+- `forward(): Promise&lt;this&gt;`
+- `reload(): Promise&lt;this&gt;`
+- `click(sel: Selector, opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `dblClick(sel: Selector, opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `type(sel: Selector, text: string, opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `press(key: string, modifiers?: Bun.WebView.Modifier[]): Promise&lt;this&gt;`
+- `scroll(dx: number, dy: number): Promise&lt;this&gt;`
+- `scrollTo(sel: Selector, opts?: { block?: "start" | "center" | "end"; timeout?: number; }): Promise&lt;this&gt;`
+- `resize(width: number, height: number): Promise&lt;this&gt;`
+- `screenshot(path?: string): Promise&lt;this&gt;`
+- `expect(sel: Selector, opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `check(sel: Selector): Promise&lt;this&gt;`
+- `waitForLoadState(state: LoadState, opts?: { timeout?: number; }): Promise&lt;this&gt;`
+- `evaluate&lt;T&gt;(fn: () =&gt; T): Promise&lt;T&gt;`
+- `locator(sel: Selector): Locator`
+- `$(sel: Selector): Promise&lt;import("./locator.js").ElementHandle | null&gt;`
+- `$$(sel: Selector): Promise&lt;import("./locator.js").ElementHandle[]&gt;`
+- `waitForSelector(sel: Selector, opts?: { timeout?: number; }): Promise&lt;void&gt;`
+- `waitForURL(url: string | RegExp, opts?: { timeout?: number; }): Promise&lt;void&gt;`
+- `exists(sel: Selector): Promise&lt;boolean&gt;`
+- `waitFor(sel: Selector, opts?: { timeout?: number; }): Promise&lt;boolean&gt;`
+- `waitForTimeout(ms: number): Promise&lt;void&gt;`
+- `cdp(method: string, params?: Record&lt;string, unknown&gt;): Promise&lt;unknown&gt;`
+
+### `SelectorError` extends `BunwrightError`
+
+_Declared in `dist/errors.d.ts`_
+
+**Constructor**
+
+- `constructor(message: string)`
+
+### `TimeoutError` extends `BunwrightError`
+
+_Declared in `dist/errors.d.ts`_
+
+**Constructor**
+
+- `constructor(message: string)`
+
+## Interfaces
+
+### `BrowserConfig`
+
+_Declared in `dist/config.d.ts`_
+
+**Properties**
+
+- `backend?: "webkit" | "chrome" | { type: "chrome"; path?: string; argv?: string[]; }`
+- `width?: number`
+- `height?: number`
+- `url?: string`
+- `console?: boolean`
+- `dataStore?: "ephemeral" | string`
+- `retryTimeout?: number`
+- `/**`
+- `* `--headless=new`. When false, it runs in headed mode. Defaults to true`
+- `* on Windows, false elsewhere.`
+- `*/`
+- `headless?: boolean`
+
+**Methods**
+
+- `* When true, the externally-spawned Chrome (Windows workaround) runs in`
+
+### `ChainTarget`
+
+_Declared in `dist/chain.d.ts`_
+
+**Properties**
+
+- `readonly [CHAINABLE]: true`
+
+### `ContextOptions`
+
+_Declared in `dist/browser.d.ts`_
+
+**Properties**
+
+- `viewport?: { width: number; height: number; }`
+- `extraHeaders?: Record&lt;string, string&gt;`
+- `cookies?: Array&lt;{ name: string; value: string; domain?: string; path?: string; }&gt;`
+
+### `ResolvedSelector`
+
+_Declared in `dist/selectors.d.ts`_
+
+**Properties**
+
+- `css: string`
+- `isCoordinate: boolean`
+- `x?: number`
+- `y?: number`
+
+## Type Aliases
+
+### `LoadState`
+
+_Declared in `dist/selectors.d.ts`_
+
+```typescript
+"load" | "domcontentloaded" | "networkidle";
+```
+
+### `Selector`
+
+_Declared in `dist/selectors.d.ts`_
+
+```typescript
+`role:${string}` | `label:${string}` | `text:${string}` | `css:${string}` | `xpath:${string}`;
+```
+
+## Functions
+
+### `chainable`
+
+_Declared in `dist/chain.d.ts`_
+
+```typescript
+chainable(target: T): Chain&lt;T&gt;
+```
+
+### `defineConfig`
+
+_Declared in `dist/config.d.ts`_
+
+```typescript
+defineConfig(config: BrowserConfig): BrowserConfig
+```

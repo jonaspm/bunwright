@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "bunwright",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-06-29",
+  "compatibility_flags": ["global_fetch_strictly_public", "nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "SKIP_INSTALL_SIMPLE_GIT_HOOKS": "1",
+  },
+}

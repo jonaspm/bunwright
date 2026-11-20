@@ -1,0 +1,76 @@
+---
+title: Environment Variables
+description: Environment variables and .env loading in Bunwright.
+---
+
+The Bunwright CLI loads `.env.local` and `.env` from the working directory before running your script. Existing environment variables are **never** overridden — the file only fills in gaps.
+
+## .env loading
+
+Create a `.env` file:
+
+```bash
+APP_USER=admin@example.com
+APP_PASSWORD=secret
+```
+
+Or `.env.local` for local overrides (loaded first, takes precedence):
+
+```bash
+APP_USER=me@localhost
+```
+
+Then reference them in your script:
+
+```ts
+import { browser } from "bunwright";
+
+const page = await browser.newPage();
+
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", process.env.APP_USER!)
+  .type("label:Password", process.env.APP_PASSWORD!);
+```
+
+### Loading rules
+
+- `.env.local` is loaded first, then `.env`
+- If a key is already set in `process.env`, the file value is **skipped**
+- Quotes around values are stripped (`KEY="value"` → `value`)
+- Inline comments after ` #` are stripped (`KEY=value # comment` → `value`)
+- BOM (byte order mark) at the start of the file is handled
+
+### Without the CLI
+
+If you run scripts with `bun run` instead of `bunx bunwright`, the `.env` loading does not happen automatically. Use Bun's built-in `--env-file` flag or load the file yourself.
+
+## Environment variables
+
+| Variable          | Effect                                                      |
+| ----------------- | ----------------------------------------------------------- |
+| `BUN_CHROME_PATH` | Path to the Chrome executable (checked first on Windows)    |
+| `BUNWRIGHT_DEBUG` | `1` logs the spawned Chrome debug port (Windows workaround) |
+
+### BUN_CHROME_PATH
+
+On Windows, Bunwright needs to find the Chrome executable. It checks in this order:
+
+1. `BUN_CHROME_PATH` environment variable
+2. `config.backend.path`
+3. Common Windows install locations
+
+```bash
+# PowerShell
+$env:BUN_CHROME_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+bunx bunwright my-script.ts
+```
+
+### BUNWRIGHT_DEBUG
+
+Set to `1` to log the port of the externally-spawned Chrome:
+
+```bash
+BUNWRIGHT_DEBUG=1 bunx bunwright my-script.ts
+# [bunwright] Spawned Chrome on port 9222 (Windows workaround)
+```

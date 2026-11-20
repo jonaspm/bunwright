@@ -1,0 +1,55 @@
+---
+title: Browser
+description: The browser singleton — entry point for creating pages and contexts.
+---
+
+`browser` is the singleton entry point exported from `bunwright`. It lazily creates a shared `Bun.WebView` on first use — all pages and contexts wrap that single view (they are not isolated browser instances).
+
+```ts
+import { browser } from "bunwright";
+```
+
+## Methods
+
+{/* AUTO:START:BrowserContext:methods */}
+| Method | Signature |
+| --- | --- |
+| `newPage` | `newPage(): Promise&lt;Page&gt;` |
+| `close` | `close(): Promise&lt;void&gt;` |
+{/* AUTO:END:BrowserContext:methods */}
+
+## newPage
+
+```ts
+const page = await browser.newPage();
+```
+
+Opens a new page. This creates the `Bun.WebView` lazily (if it doesn't exist yet) and returns a chainable `Page`. Accepts optional `ContextOptions` for viewport, headers, and cookies.
+
+## newContext
+
+```ts
+const context = await browser.newContext({
+  viewport: { width: 1920, height: 1080 },
+  extraHeaders: { Authorization: "Bearer token" },
+  cookies: [{ name: "session", value: "abc123" }],
+});
+```
+
+Creates a new `BrowserContext`. Like `newPage()`, it triggers lazy WebView creation. Context options apply viewport resize, extra HTTP headers, and cookies via CDP.
+
+## close
+
+```ts
+await browser.close();
+```
+
+Closes all contexts, the WebView, and any externally-spawned Chrome (on Windows). Always call this at the end of your script to clean up processes.
+
+## config
+
+```ts
+browser.config({ width: 1920, height: 1080 });
+```
+
+Set runtime configuration on the browser instance. This merges with config from file and `defineConfig()`. Must be called before `newPage()` / `newContext()` — the WebView is created lazily on first use.

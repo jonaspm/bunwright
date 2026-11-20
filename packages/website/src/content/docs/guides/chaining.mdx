@@ -1,0 +1,82 @@
+---
+title: Chaining
+description: Lazy action chains, fail-fast semantics, and per-step results.
+---
+
+Methods on `Page`, `Locator`, and `ElementHandle` chain without intermediate `await`s. A chain is a lazy queue — each call enqueues a step, and `await` executes them sequentially.
+
+## Basic chaining
+
+```ts
+await page
+  .navigate("https://example.com/login")
+  .type("label:Username", "user")
+  .click("role:button[name='Login']")
+  .waitForURL("**/dashboard");
+```
+
+No step runs until you `await` the chain. Each step waits for the previous one to complete.
+
+## Fail-fast
+
+If a step throws, every step queued after it is **skipped**, and the `await` rejects with the original error:
+
+```ts
+import { browser, TimeoutError } from "bunwright";
+
+const page = await browser.newPage();
+
+try {
+  await page
+    .navigate("https://example.com")
+    .click("role:button[name='Missing']") // throws TimeoutError
+    .waitForURL("**/success"); // never runs
+} catch (error) {
+  if (error instanceof TimeoutError) {
+    // handle, fall back, continue
+  }
+}
+```
+
+`instanceof` checks are preserved — the error class is not wrapped.
+
+## Await result
+
+Awaiting a chain resolves to the **final target** — the page, or a locator if the chain switched to one. If the last step returns a value (`count()`, `evaluate()`, `exists()`), awaiting resolves to that value instead:
+
+```ts
+const count = await page.locator("css:input").count(); // number
+const title = await page.evaluate(() => document.title); // string
+const exists = await page.exists("role:button[name='Submit']"); // boolean
+```
+
+## Per-step results
+
+Call `.all()` instead of awaiting to get **every step's result** as an array, in call order:
+
+```ts
+const [, , title] = await page
+  .navigate("https://example.com")
+  .click("role:button")
+  .evaluate(() => document.title)
+  .all();
+```
+
+This is useful when you need intermediate values from earlier steps, not just the final result.
+
+## How it works
+
+Under the hood, `chainable()` wraps a chainable instance in a proxy:
+
+- **Resting state** — the wrapped object itself. Not thenable, so `await` on it yields the proxy unchanged. Calling a method starts a pending chain.
+- **Pending state** — a thenable queue. Each method call enqueues onto the previous step's promise. Awaiting flushes the queue and resolves with the resting chain of the final target (or rejects with the first error).
+
+Classes opt into chaining via the `CHAINABLE` symbol marker. Method generics are erased by the mapped `Chain<T>` type, so `evaluate` has an explicit override to keep its return type inference.
+
+## Switching targets mid-chain
+
+If a step returns another chainable object (e.g., `page.locator()`), the chain switches to that target — subsequent steps chain on the new object:
+
+```ts
+await page.navigate("https://example.com").locator("role:button[name='Submit']").click();
+```

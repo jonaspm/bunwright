@@ -1,0 +1,86 @@
+---
+title: Selectors
+description: Semantic selector syntax for targeting elements in the page.
+---
+
+Selectors in Bunwright are prefixed template strings. Unprefixed strings are treated as CSS.
+
+| Prefix   | Example                     | Matches by                  |
+| -------- | --------------------------- | --------------------------- |
+| `css:`   | `css:button[type=submit]`   | CSS selector                |
+| `role:`  | `role:button[name='Login']` | ARIA role + accessible name |
+| `label:` | `label:Username`            | Associated `<label>` text   |
+| `text:`  | `text:Sign in`              | Visible text content        |
+| `xpath:` | `xpath://button[1]`         | XPath expression            |
+
+## CSS
+
+Pass any CSS selector after `css:`, or omit the prefix entirely — unprefixed strings pass through as CSS:
+
+```ts
+await page.click("css:button[type=submit]");
+await page.click("button.primary"); // same thing, no prefix needed
+```
+
+## Role
+
+`role:` matches both explicit `[role=...]` attributes **and** implicit roles. For example, `role:button` finds `<button>`, `input[type=submit]`, `input[type=button]`, `input[type=reset]`, and `[role="button"]` elements.
+
+The optional `[name='...']` part matches against the element's accessible name — `aria-label`, input `value`, or trimmed text content:
+
+```ts
+await page.click("role:button[name='Login']");
+await page.click("role:link[name='Dashboard']");
+await page.type("role:textbox[name='Email']");
+```
+
+### Supported implicit roles
+
+| Role       | Matching elements                                                |
+| ---------- | ---------------------------------------------------------------- |
+| `button`   | `<button>`, `[role="button"]`, `input[type=button/submit/reset]` |
+| `link`     | `a[href]`, `[role="link"]`                                       |
+| `textbox`  | `input` (text-like types), `textarea`, `[role="textbox"]`        |
+| `checkbox` | `input[type=checkbox]`, `[role="checkbox"]`                      |
+| `radio`    | `input[type=radio]`, `[role="radio"]`                            |
+| `heading`  | `h1`–`h6`, `[role="heading"]`                                    |
+| `list`     | `ul`, `ol`, `[role="list"]`                                      |
+| `listitem` | `li`, `[role="listitem"]`                                        |
+| `img`      | `img`, `[role="img"]`                                            |
+| `status`   | `[role="status"]`, `<output>`                                    |
+| `combobox` | `select`, `[role="combobox"]`                                    |
+
+Any role not in this table falls back to `[role="<role>"]`.
+
+## Label
+
+`label:` finds an input by its associated `<label>` text. It resolves the label element, then follows the `for` attribute or finds the nested input:
+
+```ts
+await page.type("label:Username", "user@example.com");
+await page.type("label:Password", "secret");
+```
+
+## Text
+
+`text:` finds the first element whose trimmed `textContent` matches exactly:
+
+```ts
+await page.click("text:Sign in");
+```
+
+## XPath
+
+`xpath:` evaluates an XPath expression and resolves the first matching node to a CSS path:
+
+```ts
+await page.click("xpath://button[1]");
+```
+
+## Auto-waiting
+
+Every page action (`click`, `type`, `dblClick`, etc.) auto-waits for the element to be **visible** and **enabled** before interacting. If the element isn't ready, the action retries up to 3 times with exponential backoff within `retryTimeout` (10 seconds by default).
+
+## Caching
+
+Resolved selectors are cached per `WebView` — the DOM evaluation to convert a semantic selector to a CSS path only runs once per page. Subsequent uses of the same selector string return the cached CSS.

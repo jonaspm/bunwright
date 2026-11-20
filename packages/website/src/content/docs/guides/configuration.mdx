@@ -1,0 +1,85 @@
+---
+title: Configuration
+description: Configure Bunwright via config file or defineConfig().
+---
+
+Bunwright resolves configuration in this order:
+
+1. Built-in defaults
+2. `bunwright.config.{ts,js,mjs}` in the project root (cwd)
+3. `defineConfig()` call in code
+
+Each layer overrides the previous — later sources win.
+
+## Config file
+
+Create `bunwright.config.ts` in your project root:
+
+```ts
+// bunwright.config.ts
+import { defineConfig } from "bunwright";
+
+export default defineConfig({
+  backend: "chrome",
+  width: 1440,
+  height: 900,
+  url: "",
+  console: true,
+  dataStore: "ephemeral",
+  retryTimeout: 10000,
+  headless: true,
+});
+```
+
+The file is loaded automatically — no import needed in your scripts.
+
+## Programmatic config
+
+Call `defineConfig()` anywhere in your script before using `browser`:
+
+```ts
+import { browser, defineConfig } from "bunwright";
+
+defineConfig({
+  width: 1920,
+  height: 1080,
+  console: true,
+});
+
+const page = await browser.newPage();
+```
+
+## Options
+
+| Field          | Type                                                           | Default                              | Notes                                                 |
+| -------------- | -------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------- |
+| `backend`      | `"chrome"` \| `"webkit"` \| `{ type: "chrome", path?, argv? }` | `"chrome"`                           | Browser engine to use                                 |
+| `width`        | `number`                                                       | `1280`                               | Initial viewport width                                |
+| `height`       | `number`                                                       | `800`                                | Initial viewport height                               |
+| `url`          | `string`                                                       | `""`                                 | Initial URL when the WebView opens                    |
+| `console`      | `boolean`                                                      | `false`                              | Forward page `console.log` to the terminal            |
+| `dataStore`    | `"ephemeral"` \| `string`                                      | `undefined`                          | Directory path for persistent state, or `"ephemeral"` |
+| `retryTimeout` | `number`                                                       | `10000`                              | Auto-wait/retry budget per action, in ms              |
+| `headless`     | `boolean`                                                      | `true` on Windows, `false` elsewhere | Whether Chrome runs headless (Windows workaround)     |
+
+## Backend
+
+`"chrome"` is the default and recommended for cross-platform use. `"webkit"` uses the system WebKit installation.
+
+On Windows with the `chrome` backend, Bunwright launches Chrome externally — see [Windows Notes](/guides/windows/) for details. In that mode, `backend.path` and `backend.argv` are ignored.
+
+## Data store
+
+- `"ephemeral"` — in-memory, cleared when the browser closes
+- `"/path/to/dir"` — persistent state stored in that directory (cookies, localStorage, etc.)
+- `undefined` — the `Bun.WebView` default behavior
+
+## Retry timeout
+
+`retryTimeout` controls the auto-wait budget for page actions. Every `click`, `type`, `dblClick`, etc. waits up to this duration for the element to become visible and enabled, retrying up to 3 times with exponential backoff.
+
+You can override it per-action:
+
+```ts
+await page.click("role:button[name='Slow']", { timeout: 30000 });
+```

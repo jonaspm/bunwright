@@ -1,0 +1,21 @@
+/* Bun amber accent — overrides Starlight's default indigo */
+
+:root,
+::backdrop {
+  --sl-color-accent-low: hsl(41, 54%, 20%);
+  --sl-color-accent: hsl(41, 95%, 57%);
+  --sl-color-accent-high: hsl(41, 100%, 85%);
+  --sl-color-text-accent: var(--sl-color-accent-high);
+  --sl-color-text-invert: var(--sl-color-accent-low);
+  --sl-color-bg-accent: var(--sl-color-accent-high);
+}
+
+:root[data-theme="light"],
+[data-theme="light"] ::backdrop {
+  --sl-color-accent-low: hsl(41, 88%, 90%);
+  --sl-color-accent: hsl(41, 90%, 50%);
+  --sl-color-accent-high: hsl(41, 80%, 30%);
+  --sl-color-text-accent: var(--sl-color-accent);
+  --sl-color-text-invert: var(--sl-color-white);
+  --sl-color-bg-accent: var(--sl-color-accent);
+}

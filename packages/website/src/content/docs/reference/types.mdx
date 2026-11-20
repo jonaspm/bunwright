@@ -1,0 +1,95 @@
+---
+title: Types
+description: Type aliases and interfaces exported by Bunwright.
+---
+
+Bunwright exports several types for use in TypeScript projects. Import them as type-only imports:
+
+```ts
+import type {
+  BrowserConfig,
+  ContextOptions,
+  Selector,
+  LoadState,
+  ResolvedSelector,
+} from "bunwright";
+```
+
+## BrowserConfig
+
+{/* AUTO:START:BrowserConfig:interface */}
+| Property | Type |
+| --- | --- |
+| `backend?` | `"webkit" \| "chrome" \| { type: "chrome"; path?: string; argv?: string[]; }` |
+| `width?` | `number` |
+| `height?` | `number` |
+| `url?` | `string` |
+| `console?` | `boolean` |
+| `dataStore?` | `"ephemeral" \| string` |
+| `retryTimeout?` | `number` |
+| `headless?` | `boolean` |
+{/* AUTO:END:BrowserConfig:interface */}
+
+See [Configuration](/guides/configuration/) for usage details.
+
+## ContextOptions
+
+{/* AUTO:START:ContextOptions:interface */}
+| Property | Type |
+| --- | --- |
+| `viewport?` | `{ width: number; height: number; }` |
+| `extraHeaders?` | `Record&lt;string, string&gt;` |
+| `cookies?` | `Array&lt;{ name: string; value: string; domain?: string; path?: string; }&gt;` |
+{/* AUTO:END:ContextOptions:interface */}
+
+Used with `browser.newPage()` and `browser.newContext()`:
+
+```ts
+const context = await browser.newContext({
+  viewport: { width: 1920, height: 1080 },
+  extraHeaders: { Authorization: "Bearer token" },
+  cookies: [{ name: "session", value: "abc", domain: "example.com" }],
+});
+```
+
+## Selector
+
+{/* AUTO:START:Selector:type */}
+
+```typescript
+`role:${string}` | `label:${string}` | `text:${string}` | `css:${string}` | `xpath:${string}`;
+```
+
+{/* AUTO:END:Selector:type */}
+
+A template literal type — prefixed strings for semantic element queries. See [Selectors](/guides/selectors/) for the full guide.
+
+## LoadState
+
+{/* AUTO:START:LoadState:type */}
+
+```typescript
+"load" | "domcontentloaded" | "networkidle";
+```
+
+{/* AUTO:END:LoadState:type */}
+
+Used with `page.waitForLoadState()` and `page.navigate()`:
+
+```ts
+await page.waitForLoadState("networkidle");
+await page.navigate("https://example.com", { waitForLoadState: "load" });
+```
+
+## ResolvedSelector
+
+{/* AUTO:START:ResolvedSelector:interface */}
+| Property | Type |
+| --- | --- |
+| `css` | `string` |
+| `isCoordinate` | `boolean` |
+| `x?` | `number` |
+| `y?` | `number` |
+{/* AUTO:END:ResolvedSelector:interface */}
+
+Internal type representing a resolved selector. `css` is the CSS path used for `querySelector`. `isCoordinate` indicates if the selector resolved to a point coordinate rather than an element.
