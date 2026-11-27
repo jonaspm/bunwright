@@ -21,11 +21,12 @@
   ],
   "type": "module",
   "module": "./dist/index.mjs",
-  "types": "./dist/types.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "bun run build:dist && bun run build:types",
     "build:dist": "bun build.ts",
     "build:types": "bun --bun tsc --declaration --emitDeclarationOnly --outDir dist --ignoreConfig --types bun src/dsl/index.ts",
+    "check:package": "bun scripts/check-package.ts",
     "docs": "bun run build && bun run scripts/generate-api-docs.ts",
     "format:check": "oxfmt --check",
     "lint": "oxlint",
