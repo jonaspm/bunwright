@@ -20,11 +20,12 @@ bun run --cwd packages/app typecheck                     # tsc --noEmit; app is 
 bun run lint                                             # oxlint, repo-wide
 bun run format / format:check                            # oxfmt, repo-wide
 bun run --cwd packages/app build                         # bundle dist/ (build.ts) + emit .d.ts
+bun run --cwd packages/app check:package                 # verify the tarball's type entry after building
 bun run --cwd packages/app docs                          # build + regenerate docs/api-reference.md (auto-gen, never hand-edit)
 bun run packages/app/src/bunwright.ts packages/app/examples/login.ts   # run CLI in dev
 ```
 
-CI (`.github/workflows/test.yml`, ubuntu): typecheck → lint → format:check → build → test. Replicate that order before pushing; installs google-chrome-stable and sets `BUN_CHROME_PATH`.
+CI (`.github/workflows/test.yml`, ubuntu): typecheck → lint → format:check → build → check:package → test. Replicate that order before pushing; installs google-chrome-stable and sets `BUN_CHROME_PATH`.
 
 Git hooks: `simple-git-hooks` pre-commit runs `lint-staged` → oxfmt on staged files. CI installs with `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`.
 
